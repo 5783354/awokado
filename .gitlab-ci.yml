@@ -1,0 +1,25 @@
+stages:
+- test
+
+tests:
+  image: python:3.6
+  stage: test
+  services:
+  - postgres:9.6.7
+  variables:
+    PIP_DOWNLOAD_CACHE: /cache/pip/.pip_download_cache
+    DEBUG: 1
+    POSTGRES_DB: test
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    DATABASE_HOST: postgres
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/pip-cache"
+
+  before_script:
+  - pip install -r requirements/requirements.txt
+  - pip install coverage
+  - python -m tests.test_app.init_db
+
+  script:
+  - coverage run --source=awokado -m unittest discover
+  - coverage report -m
