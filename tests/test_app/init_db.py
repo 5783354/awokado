@@ -6,14 +6,14 @@ from settings import (
     DATABASE_HOST,
     DATABASE_PORT,
     DATABASE_DB,
-)
+    DATABASE_URL)
 from .models import Model
 
-DATABASE_URL = "postgresql://{}:{}@{}:{}".format(
+DATABASE_URL_MAIN = "postgresql://{}:{}@{}:{}".format(
     DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST, DATABASE_PORT
 )
 
-e = create_engine(DATABASE_URL)
+e = create_engine(DATABASE_URL_MAIN)
 conn = e.connect()
 conn.execute("commit")
 conn.execute(f"drop database if exists {DATABASE_DB}")
