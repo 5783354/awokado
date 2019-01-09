@@ -1,0 +1,12 @@
+alembic
+boto3
+bcrypt
+falcon
+ipython
+marshmallow
+psycopg2-binary
+pudb
+pyaml
+python-jose
+stairs
+black

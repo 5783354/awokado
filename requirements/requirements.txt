@@ -1,0 +1,5 @@
+boto3
+falcon
+marshmallow
+python-jose
+stairs
