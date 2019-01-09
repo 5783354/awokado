@@ -1,5 +1,7 @@
 [![coverage report](https://gitlab.com/5783354/awokado/badges/master/coverage.svg)](https://gitlab.com/5783354/awokado/commits/master)
+
 [![pipeline status](https://gitlab.com/5783354/awokado/badges/master/pipeline.svg)](https://gitlab.com/5783354/awokado/commits/master)
+
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 
 Fast and flexible low-level API framework based on Falcon and SQLAlchemy Core
@@ -57,4 +59,19 @@ limit=`integer`&offset=`integer`
 `/v1/user/?offset=10`
 
 `/v1/user/?limit=2000`
+
+# Authors
+Is being made with the help of
+ 
+[Alex Sidorov](mailto:alex.n.sidorov@gmail.com)
+
+[Ksenia Malyavskaya](mailto:ksenia.malyavskaya@upsilonit.com)
+
+[Pavel Danilyuk](mailto:pavel.danilyuk@upsilonit.com)
+
+[Andrew Osenenko](mailto:andrew.osenenko@upsilonit.com)
+
+
+
+
 

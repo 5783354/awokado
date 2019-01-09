@@ -10,7 +10,7 @@ import boto3
 import settings
 
 
-class HttpMiddleware(object):
+class HttpMiddleware:
     def process_request(self, req, resp):
         """Process the request before routing it.
 

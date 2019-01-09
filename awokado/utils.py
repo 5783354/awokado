@@ -24,7 +24,7 @@ class AuthBundle(NamedTuple):
 
 
 def rand_string(size=8, chars=string.ascii_uppercase + string.digits):
-    return "".join(random.choice(chars) for x in range(size))
+    return "".join(random.choice(chars) for _ in range(size))
 
 
 def get_sort_way(sort_route):
