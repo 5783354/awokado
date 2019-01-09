@@ -15,7 +15,7 @@ import settings
 from awokado.exceptions import BaseApiException
 from awokado.filter_parser import parse_filters
 
-log = logging.getLogger('API')
+log = logging.getLogger("API")
 
 
 class AuthBundle(NamedTuple):
@@ -24,11 +24,11 @@ class AuthBundle(NamedTuple):
 
 
 def rand_string(size=8, chars=string.ascii_uppercase + string.digits):
-    return ''.join(random.choice(chars) for x in range(size))
+    return "".join(random.choice(chars) for x in range(size))
 
 
 def get_sort_way(sort_route):
-    if sort_route.startswith('-'):
+    if sort_route.startswith("-"):
         sort_route = sort_route[1:]
 
         def sort_way(sort_field):
@@ -61,13 +61,13 @@ def get_read_params(req, resource) -> dict:
     """
 
     params = dict(
-        include=req.get_param_as_list('include'),
-        sort=req.get_param_as_list('sort'),
-        limit=req.get_param_as_int('limit'),
-        offset=req.get_param_as_int('offset'),
+        include=req.get_param_as_list("include"),
+        sort=req.get_param_as_list("sort"),
+        limit=req.get_param_as_int("limit"),
+        offset=req.get_param_as_int("offset"),
     )
 
-    params['filters'] = parse_filters(req._params, resource)
+    params["filters"] = parse_filters(req._params, resource)
     return params
 
 
@@ -80,13 +80,13 @@ def json_error_serializer(
     resp.body = exception.to_json()
 
     # Set content type
-    resp.content_type = 'application/json'
-    resp.append_header('Vary', 'Accept')
+    resp.content_type = "application/json"
+    resp.append_header("Vary", "Accept")
     resp.status = exception.status
 
     # Setup CORS
-    origin = req.headers.get('HTTP_ORIGIN')
-    origin2 = req.headers.get('ORIGIN')
+    origin = req.headers.get("HTTP_ORIGIN")
+    origin2 = req.headers.get("ORIGIN")
     origin = origin2 or origin
     headers = {}
 
@@ -113,20 +113,20 @@ def api_exception_handler(error, req, resp, params):
             json_error_serializer(req, resp, error)
 
     elif isinstance(error, falcon.HTTPNotFound):
-        resp.status = '404 Not Found'
-        resp.content_type = 'application/json'
+        resp.status = "404 Not Found"
+        resp.content_type = "application/json"
         resp.body = falcon.json.dumps({"error": str(error)})
-        resp.append_header('Vary', 'Accept')
+        resp.append_header("Vary", "Accept")
 
     else:
-        resp.status = '500 Internal Server Error'
+        resp.status = "500 Internal Server Error"
         exc_info = sys.exc_info()
-        log.error('api_exception_handler', exc_info=exc_info)
+        log.error("api_exception_handler", exc_info=exc_info)
 
-        if hasattr(error, 'to_dict'):
+        if hasattr(error, "to_dict"):
             resp.body = falcon.json.dumps({"error": error.to_dict()})
 
-        elif hasattr(error, 'to_json'):
+        elif hasattr(error, "to_json"):
             json_data = error.to_json()
 
             try:
@@ -142,8 +142,8 @@ def api_exception_handler(error, req, resp, params):
         # Serialize exception
 
         # Set content type
-        resp.content_type = 'application/json'
-        resp.append_header('Vary', 'Accept')
+        resp.content_type = "application/json"
+        resp.append_header("Vary", "Accept")
 
 
 class ReadContext:
@@ -191,5 +191,5 @@ def get_uuid_hash(string):
         (
             str(uuid.uuid3(uuid.uuid4(), string))
             + str(datetime.datetime.utcnow())
-        ).encode('utf-8')
+        ).encode("utf-8")
     ).hexdigest()

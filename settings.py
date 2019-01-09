@@ -59,7 +59,7 @@ except:
 DATABASE_URL = "postgresql://{}:{}@{}:{}/{}".format(
     DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST, DATABASE_PORT, DATABASE_DB
 )
-
+print(DATABASE_URL)
 import stairs
 
 stairs.configure(DATABASE_URL)

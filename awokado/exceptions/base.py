@@ -1,13 +1,13 @@
 import json
 
-ERROR_STATUS = 'status'
-ERROR_CODE = 'code'
-ERROR_TITLE = 'title'
-ERROR_DETAIL = 'detail'
+ERROR_STATUS = "status"
+ERROR_CODE = "code"
+ERROR_TITLE = "title"
+ERROR_DETAIL = "detail"
 
 
 class BaseApiException(Exception):
-    def __init__(self, status, title, code=None, details='', headers=None):
+    def __init__(self, status, title, code=None, details="", headers=None):
         self.status = status
         self.title = title
         self.code = code

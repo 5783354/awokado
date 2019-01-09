@@ -29,16 +29,16 @@ class ResourceMeta(SchemaMeta):
         new_resource.RESOURCES[new_resource.Meta.name] = new_resource
         res_meta = new_resource.Meta
 
-        if res_meta.name == 'base_resource':
+        if res_meta.name == "base_resource":
             return new_resource
-        elif res_meta.name == '_resource':
+        elif res_meta.name == "_resource":
             return new_resource
 
-        if not hasattr(res_meta, 'methods') or not res_meta.methods:
+        if not hasattr(res_meta, "methods") or not res_meta.methods:
             raise Exception(f"{cls_name} must have Meta.methods")
-        if not hasattr(res_meta, 'name') or not res_meta.name:
+        if not hasattr(res_meta, "name") or not res_meta.name:
             raise Exception(f"{cls_name} must have Meta.name")
-        if not hasattr(res_meta, 'auth'):
+        if not hasattr(res_meta, "auth"):
             raise Exception(f"{cls_name} must have Meta.auth")
 
         return new_resource
@@ -48,7 +48,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     RESOURCES = {}
 
     class Meta:
-        name = 'base_resource'
+        name = "base_resource"
         methods = tuple()
         auth = BaseAuth
         skip_doc = True
@@ -107,16 +107,16 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             payload = req.stream
 
             self.audit_log(
-                f'Update: {self.Meta.name}', payload, user_id, AUDIT_DEBUG
+                f"Update: {self.Meta.name}", payload, user_id, AUDIT_DEBUG
             )
 
             data = payload[self.Meta.name]
             ids = [d.get(self.Meta.model.id.key) for d in data]
 
             if not all(ids):
-                raise BadRequest(details='Invalid update arguments')
+                raise BadRequest(details="Invalid update arguments")
 
-            if hasattr(self.Meta, 'auth') and self.Meta.auth is not None:
+            if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
                 self.Meta.auth.can_update(session, user_id, ids)
 
             result = self.update(session, payload, user_id, resource_id)
@@ -134,7 +134,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             session = t.session
             user_id, token = self.auth(session, req, resp)
 
-            if hasattr(self.Meta, 'auth') and self.Meta.auth is not None:
+            if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
                 self.Meta.auth.can_create(session, user_id, skip_exc=False)
 
             self.validate_create_request(req, resp)
@@ -142,7 +142,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             payload = req.stream
 
             self.audit_log(
-                f'Create: {self.Meta.name}', payload, user_id, AUDIT_DEBUG
+                f"Create: {self.Meta.name}", payload, user_id, AUDIT_DEBUG
             )
 
             result = self.create(session, payload, user_id)
@@ -150,10 +150,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         resp.body = json.dumps(result, default=str)
 
     def auth(self, *args, **kwargs):
-        raise NotImplementedError('auth method not found')
+        raise NotImplementedError("auth method not found")
 
     def audit_log(self, *args, **kwargs):
-        raise NotImplementedError('audit_log method not found')
+        raise NotImplementedError("audit_log method not found")
 
     def on_get(
         self,
@@ -194,10 +194,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
             if not resource_id:
                 raise DeleteResourceForbidden(
-                    details='Bulk deletion is forbidden'
+                    details="Bulk deletion is forbidden"
                 )
 
-            if hasattr(self.Meta, 'auth') and self.Meta.auth is not None:
+            if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
                 self.Meta.auth.can_delete(session, user_id, [resource_id])
 
             result = self.delete(session, user_id, resource_id)
@@ -228,7 +228,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
                 f = self.fields[fn]
                 if isinstance(f, ToMany):
                     continue
-                model_field = f.metadata.get('model_field')
+                model_field = f.metadata.get("model_field")
                 if not model_field:
                     continue
                 to_update[model_field.key] = v
@@ -246,7 +246,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             f = self.fields[fn]
             if isinstance(f, ToMany):
                 continue
-            model_field = f.metadata['model_field']
+            model_field = f.metadata["model_field"]
             to_create[model_field.key] = v
 
         return to_create
@@ -307,7 +307,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
                     details="Filed <{}> doesn't exist".format(f.field)
                 )
 
-            model_field = resource_field.metadata.get('model_field')
+            model_field = resource_field.metadata.get("model_field")
 
             if model_field is None:
                 raise BadFilter(filter=f.field)
@@ -333,7 +333,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
                 if sort_route in self.fields.keys():
                     r_field = self.fields.get(sort_route)
                     ctx.q = ctx.q.order_by(
-                        sort_way(r_field.metadata.get('model_field'))
+                        sort_way(r_field.metadata.get("model_field"))
                     )
 
     def read__pagination(self, ctx: ReadContext):
@@ -349,16 +349,16 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     def read__includes(self, session, ctx: ReadContext):
         for i in ctx.include or []:
-            if '.' in i:
+            if "." in i:
                 raise BadRequest()
 
             elif not isinstance(self.fields.get(i), (ToOne, ToMany)):
-                raise RelationNotFound(f'Relation <{i}> not found')
+                raise RelationNotFound(f"Relation <{i}> not found")
 
             else:
-                related_resource_name = self.fields[i].metadata['resource']
+                related_resource_name = self.fields[i].metadata["resource"]
                 related_res = self.RESOURCES[related_resource_name]
-                related_field = self.fields[i].metadata.get('model_field')
+                related_field = self.fields[i].metadata.get("model_field")
                 method_name = f"get_by_{self.Meta.name.lower()}_ids"
 
                 if not hasattr(related_res, method_name):
@@ -378,10 +378,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     ):
         if related_res.Meta.name in ctx.related_payload:
             existing_record_ids = [
-                rec['id'] for rec in ctx.related_payload[related_res.Meta.name]
+                rec["id"] for rec in ctx.related_payload[related_res.Meta.name]
             ]
             for rec in related_data:
-                if rec['id'] not in existing_record_ids:
+                if rec["id"] not in existing_record_ids:
                     ctx.related_payload[related_res.Meta.name].append(rec)
         else:
             ctx.related_payload[related_res.Meta.name] = related_data
@@ -398,12 +398,12 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         return response
 
     def read__execute_query(self, session, ctx: ReadContext):
-        ctx.q.append_column(sa.func.count().over().label('total'))
+        ctx.q.append_column(sa.func.count().over().label("total"))
         result = session.execute(ctx.q).fetchall()
 
         serialized_data, errors = self.dump(result, many=True)
 
-        ctx.obj_ids.extend([_i['id'] for _i in serialized_data])
+        ctx.obj_ids.extend([_i["id"] for _i in serialized_data])
         ctx.parent_payload = serialized_data
 
         if serialized_data:

@@ -21,14 +21,14 @@ class HttpMiddleware(object):
                 the on_* responder.
         """
         # Set content type
-        resp.content_type = 'application/json'
+        resp.content_type = "application/json"
 
         if not req.headers:
             return
 
         # Update https headers
-        origin = req.headers.get('HTTP_ORIGIN')
-        origin2 = req.headers.get('ORIGIN')
+        origin = req.headers.get("HTTP_ORIGIN")
+        origin2 = req.headers.get("ORIGIN")
         origin = origin2 or origin
 
         if settings.DEBUG:
@@ -62,12 +62,12 @@ class HttpMiddleware(object):
                 resource's responder method as keyword
                 arguments.
         """
-        profiling_enabled = req.get_param_as_bool('profiling')
+        profiling_enabled = req.get_param_as_bool("profiling")
         if profiling_enabled:
             profile = cProfile.Profile()
             profile.enable()
             req.profile = profile
-        debugger_enabled = req.get_param_as_bool('debug')
+        debugger_enabled = req.get_param_as_bool("debug")
         if debugger_enabled:
             from pudb.remote import set_trace
 
@@ -87,7 +87,7 @@ class HttpMiddleware(object):
                 request; otherwise False.
         """
 
-        profiling_enabled = req.get_param_as_bool('profiling')
+        profiling_enabled = req.get_param_as_bool("profiling")
         if profiling_enabled:
             req.profile.disable()
             save_debug_proiling(req.profile)
@@ -105,26 +105,26 @@ def save_profiling_info_to_file(profile):
     marshaled_stats = marshal.dumps(stats.stats)
 
     now = datetime.datetime.now()
-    key = '{}-{}.prof'.format(
-        now.strftime('%Y-%m-%d'),
-        now.strftime('%Y-%m-%dT%H-%M-%S'),
-        ''.join(random.choice(string.ascii_lowercase) for _ in range(10)),
+    key = "{}-{}.prof".format(
+        now.strftime("%Y-%m-%d"),
+        now.strftime("%Y-%m-%dT%H-%M-%S"),
+        "".join(random.choice(string.ascii_lowercase) for _ in range(10)),
     )
-    with open(key, 'w') as f:
-        f.write(marshaled_stats.decode(encoding='utf-8'))
+    with open(key, "w") as f:
+        f.write(marshaled_stats.decode(encoding="utf-8"))
 
 
 def upload_profiling_info_to_s3(profile):
     stats = pstats.Stats(profile)
     marshaled_stats = marshal.dumps(stats.stats)
     s3client = boto3.client(
-        's3',
+        "s3",
         aws_access_key_id=settings.AWS_S3_DEBUG_PROFILING_ACCESS_KEY,
         aws_secret_access_key=settings.AWS_S3_DEBUG_PROFILING_SECRET_KEY,
     )
 
     now = datetime.datetime.now()
-    rand_str = ''.join(random.choice(string.ascii_lowercase) for _ in range(10))
+    rand_str = "".join(random.choice(string.ascii_lowercase) for _ in range(10))
     key = (
         f"profiling"
         f"/{now.strftime('%Y-%m-%d')}"

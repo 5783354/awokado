@@ -4,7 +4,7 @@ from awokado.exceptions import BaseApiException
 
 
 class NotFound(BaseApiException):
-    def __init__(self, details='', code='not-found'):
+    def __init__(self, details="", code="not-found"):
         BaseApiException.__init__(
             self,
             status=falcon.HTTP_NOT_FOUND,
@@ -27,9 +27,9 @@ class ResourceNotFound(NotFound):
                 )
             else:
                 details = "Resource not found"
-        NotFound.__init__(self, code='resource-not-found', details=details)
+        NotFound.__init__(self, code="resource-not-found", details=details)
 
 
 class RelationNotFound(NotFound):
-    def __init__(self, details='Relation not found'):
-        NotFound.__init__(self, code='relation-not-found', details=details)
+    def __init__(self, details="Relation not found"):
+        NotFound.__init__(self, code="relation-not-found", details=details)
