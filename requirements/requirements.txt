@@ -3,3 +3,4 @@ falcon
 marshmallow
 python-jose
 stairs
+psycopg2-binary
