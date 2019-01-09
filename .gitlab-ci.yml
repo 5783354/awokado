@@ -12,7 +12,7 @@ tests:
     POSTGRES_DB: test
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
-    DATABASE_HOST: postgres
+    DATABASE_HOST: localhost
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/pip-cache"
 
   before_script:
