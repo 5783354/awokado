@@ -34,7 +34,7 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD", "postgres")
 DATABASE_HOST = os.getenv("DATABASE_HOST", "localhost")
 DATABASE_USER = os.getenv("DATABASE_USER", "postgres")
 DATABASE_PORT = os.getenv("DATABASE_PORT", 5432)
-DATABASE_DB = os.getenv("DATABASE_DB", "melon_example_db")
+DATABASE_DB = os.getenv("DATABASE_DB", "test")
 
 ###############################################################################
 # AWS S3 Settings

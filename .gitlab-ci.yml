@@ -9,7 +9,7 @@ tests:
   variables:
     PIP_DOWNLOAD_CACHE: /cache/pip/.pip_download_cache
     DEBUG: 1
-    POSTGRES_DB: esentai
+    POSTGRES_DB: test
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
     DATABASE_HOST: postgres
