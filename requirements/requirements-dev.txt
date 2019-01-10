@@ -10,3 +10,4 @@ pyaml
 python-jose
 stairs
 black
+dynaconf
