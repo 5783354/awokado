@@ -3,7 +3,7 @@ import os
 from dynaconf import settings
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-AWOKADO_DEBUG = settings.get("DEBUG", False)
+AWOKADO_DEBUG = settings.get("AWOKADO_DEBUG", False)
 ###############################################################################
 # HTTP headers
 ###############################################################################
