@@ -26,7 +26,7 @@ AWOKADO_AUTH_BEARER_SECRET = os.getenv("AWOKADO_AUTH_BEARER_SECRET", "XXX")
 # DB Settings
 ###############################################################################
 DATABASE_PASSWORD = settings.get("DATABASE_PASSWORD", "postgres")
-DATABASE_HOST = settings.get("DATABASE_HOST", "localhost")
+DATABASE_HOST = settings.get("DATABASE_HOST", "postgres")
 DATABASE_USER = settings.get("DATABASE_USER", "postgres")
 DATABASE_PORT = settings.get("DATABASE_PORT", 5432)
 DATABASE_DB = settings.get("DATABASE_DB", "test")
