@@ -32,6 +32,7 @@ setup(
         "pyaml",
         "python-jose",
         "stairs",
+        "dynaconf",
     ),
     python_requires=">=3.6",
 )
