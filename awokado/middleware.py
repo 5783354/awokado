@@ -7,7 +7,7 @@ import string
 
 import boto3
 
-import settings
+from awokado import settings
 
 
 class HttpMiddleware:
@@ -31,7 +31,7 @@ class HttpMiddleware:
         origin2 = req.headers.get("ORIGIN")
         origin = origin2 or origin
 
-        if settings.DEBUG:
+        if settings.AWOKADO_DEBUG:
             resp.append_header(name="Access-Control-Allow-Origin", value=origin)
         else:
             if origin and origin in settings.ORIGIN_HOSTS:
@@ -94,7 +94,7 @@ class HttpMiddleware:
 
 
 def save_debug_proiling(profile):
-    if settings.UPLOAD_DEBUG_PROFILING_TO_S3:
+    if settings.AWOKADO_ENABLE_UPLOAD_DEBUG_PROFILING_TO_S3:
         upload_profiling_info_to_s3(profile)
     else:
         save_profiling_info_to_file(profile)
@@ -119,8 +119,8 @@ def upload_profiling_info_to_s3(profile):
     marshaled_stats = marshal.dumps(stats.stats)
     s3client = boto3.client(
         "s3",
-        aws_access_key_id=settings.AWS_S3_DEBUG_PROFILING_ACCESS_KEY,
-        aws_secret_access_key=settings.AWS_S3_DEBUG_PROFILING_SECRET_KEY,
+        aws_access_key_id=settings.AWOKADO_AWS_S3_DEBUG_PROFILING_ACCESS_KEY,
+        aws_secret_access_key=settings.AWOKADO_AWS_S3_DEBUG_PROFILING_SECRET_KEY,
     )
 
     now = datetime.datetime.now()
@@ -133,7 +133,7 @@ def upload_profiling_info_to_s3(profile):
     )
     kwargs = dict(
         Body=marshaled_stats,
-        Bucket=settings.AWS_S3_ATTACHMENTS_BUCKET_NAME,
+        Bucket=settings.AWOKADO_AWS_S3_DEBUG_PROFILING_BUCKET_NAME,
         Key=key,
     )
 

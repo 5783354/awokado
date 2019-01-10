@@ -3,7 +3,7 @@ from typing import Optional
 import falcon
 from jose import jwt
 
-import settings
+from awokado import settings
 
 
 def set_bearer_header(resp: falcon.response.Response, payload: dict) -> str:

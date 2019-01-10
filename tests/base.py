@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session as _Session
 from sqlalchemy.pool import NullPool
 from stairs import Transaction
 
-import settings
+from awokado import settings
 
 
 class Session(_Session):
