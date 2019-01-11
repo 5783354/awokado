@@ -1,6 +1,6 @@
 boto3
 falcon
-marshmallow
+marshmallow==2.16.3
 python-jose
 stairs
 psycopg2-binary
