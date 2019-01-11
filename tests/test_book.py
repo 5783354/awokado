@@ -2,9 +2,9 @@ from unittest.mock import patch
 
 import sqlalchemy as sa
 
+from tests.base import BaseAPITest
 from tests.test_app import models as m
 from tests.test_app.routes import api
-from tests.base import BaseAPITest
 
 
 class BookTest(BaseAPITest):

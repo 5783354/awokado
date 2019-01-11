@@ -9,9 +9,14 @@ from stairs import Transaction
 from awokado.auth import BaseAuth
 from awokado.consts import AUDIT_DEBUG
 from awokado.custom_fields import ToMany, ToOne
-from awokado.exceptions import BadRequest, RelationNotFound
-from awokado.exceptions import DeleteResourceForbidden
-from awokado.exceptions.bad_request import BadFilter, UnsupportedMethod
+from awokado.exceptions import (
+    BadRequest,
+    BadFilter,
+    DeleteResourceForbidden,
+    MethodNotAllowed,
+    RelationNotFound,
+    UnsupportedMethod,
+)
 from awokado.filter_parser import filter_value_to_python, FilterItem
 from awokado.utils import (
     get_sort_way,
@@ -209,13 +214,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     ###########################################################################
 
     def update(self, session, payload: dict, user_id: int, resource_id: int):
-        raise UnsupportedMethod()
+        raise MethodNotAllowed()
 
     def create(self, session, payload: dict, user_id: int):
-        raise UnsupportedMethod()
+        raise MethodNotAllowed()
 
     def delete(self, session, user_id: int, resource_id: int):
-        raise UnsupportedMethod()
+        raise MethodNotAllowed()
 
     def _to_update(self, data: list) -> list:
         """
