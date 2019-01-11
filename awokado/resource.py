@@ -9,9 +9,14 @@ from stairs import Transaction
 from awokado.auth import BaseAuth
 from awokado.consts import AUDIT_DEBUG
 from awokado.custom_fields import ToMany, ToOne
-from awokado.exceptions import BadRequest, RelationNotFound
-from awokado.exceptions import DeleteResourceForbidden
-from awokado.exceptions.bad_request import BadFilter, UnsupportedMethod
+from awokado.exceptions import (
+    BadRequest,
+    BadFilter,
+    DeleteResourceForbidden,
+    MethodNotAllowed,
+    RelationNotFound,
+    UnsupportedMethod
+)
 from awokado.filter_parser import filter_value_to_python, FilterItem
 from awokado.utils import (
     get_sort_way,
@@ -58,10 +63,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     ###########################################################################
 
     def validate_create_request(
-        self,
-        req: falcon.request.Request,
-        resp: falcon.response.Response,
-        is_bulk=False,
+            self,
+            req: falcon.request.Request,
+            resp: falcon.response.Response,
+            is_bulk=False,
     ):
         payload = json.load(req.stream)
         errors = self.validate(payload.get(self.Meta.name), many=is_bulk)
@@ -72,7 +77,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         req.stream = payload
 
     def validate_update_request(
-        self, req: falcon.request.Request, resp: falcon.response.Response
+            self, req: falcon.request.Request, resp: falcon.response.Response
     ):
         payload = json.load(req.stream)
         errors = self.validate(
@@ -89,10 +94,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     ###########################################################################
 
     def on_patch(
-        self,
-        req: falcon.request.Request,
-        resp: falcon.response.Response,
-        resource_id: int = None,
+            self,
+            req: falcon.request.Request,
+            resp: falcon.response.Response,
+            resource_id: int = None,
     ):
         """
         Update
@@ -124,7 +129,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         resp.body = json.dumps(result, default=str)
 
     def on_post(
-        self, req: falcon.request.Request, resp: falcon.response.Response
+            self, req: falcon.request.Request, resp: falcon.response.Response
     ):
         """
         Create
@@ -156,10 +161,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         raise NotImplementedError("audit_log method not found")
 
     def on_get(
-        self,
-        req: falcon.request.Request,
-        resp: falcon.response.Response,
-        resource_id: int = None,
+            self,
+            req: falcon.request.Request,
+            resp: falcon.response.Response,
+            resource_id: int = None,
     ):
         """
         Read
@@ -179,10 +184,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         resp.body = json.dumps(result, default=str)
 
     def on_delete(
-        self,
-        req: falcon.request.Request,
-        resp: falcon.response.Response,
-        resource_id: int = None,
+            self,
+            req: falcon.request.Request,
+            resp: falcon.response.Response,
+            resource_id: int = None,
     ):
         """
         Delete
@@ -209,13 +214,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     ###########################################################################
 
     def update(self, session, payload: dict, user_id: int, resource_id: int):
-        raise UnsupportedMethod()
+        raise MethodNotAllowed()
 
     def create(self, session, payload: dict, user_id: int):
-        raise UnsupportedMethod()
+        raise MethodNotAllowed()
 
     def delete(self, session, user_id: int, resource_id: int):
-        raise UnsupportedMethod()
+        raise MethodNotAllowed()
 
     def _to_update(self, data: list) -> list:
         """
@@ -252,15 +257,15 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         return to_create
 
     def read_handler(
-        self,
-        session,
-        user_id: int,
-        include: list = None,
-        filters: [FilterItem] = None,
-        sort: list = None,
-        resource_id: int = None,
-        limit: int = None,
-        offset: int = None,
+            self,
+            session,
+            user_id: int,
+            include: list = None,
+            filters: [FilterItem] = None,
+            sort: list = None,
+            resource_id: int = None,
+            limit: int = None,
+            offset: int = None,
     ) -> dict:
 
         ctx = ReadContext(
@@ -374,7 +379,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     @staticmethod
     def __add_related_payload(
-        ctx: ReadContext, related_res, related_data: list
+            ctx: ReadContext, related_res, related_data: list
     ):
         if related_res.Meta.name in ctx.related_payload:
             existing_record_ids = [

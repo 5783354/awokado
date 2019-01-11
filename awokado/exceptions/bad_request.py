@@ -1,4 +1,5 @@
 import falcon
+
 from .base import BaseApiException
 
 
@@ -52,4 +53,13 @@ class UnsupportedRequestAttr(BadRequest):
                 details = "Request attr is not supported"
         BadRequest.__init__(
             self, code="unsupported-request-attr", details=details
+        )
+
+
+class MethodNotAllowed(BaseApiException):
+    def __init__(self, details='', code='method-not-allowed'):
+        BaseApiException.__init__(
+            self, status=falcon.HTTP_METHOD_NOT_ALLOWED,
+            title=falcon.HTTP_METHOD_NOT_ALLOWED,
+            code=code, details=details
         )
