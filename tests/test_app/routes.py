@@ -1,7 +1,7 @@
 import falcon
 
 from awokado.middleware import HttpMiddleware
-from settings import DATABASE_URL
+from awokado.settings import DATABASE_URL
 from .resources.author import AuthorResource
 from .resources.book import BookResource
 from .resources.store import StoreResource

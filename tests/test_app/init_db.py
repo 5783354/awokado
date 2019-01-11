@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 
-from settings import (
+from awokado.settings import (
     DATABASE_USER,
     DATABASE_PASSWORD,
     DATABASE_HOST,
