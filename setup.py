@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="awokado",
-    version="0.1b2",
+    version="0.1b3",
     description="Fast and flexible API framework based on Falcon and SQLAlchemy",
     author="Dmitry Karnei",
     author_email="5783354@gmail.com",

@@ -15,7 +15,7 @@ from awokado import settings
 from awokado.exceptions import BaseApiException
 from awokado.filter_parser import parse_filters
 
-log = logging.getLogger("API")
+log = logging.getLogger("awokado")
 
 
 class AuthBundle(NamedTuple):
