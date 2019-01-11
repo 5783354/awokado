@@ -51,14 +51,23 @@ class StoreTest(BaseAPITest):
             api_response.status, "405 Method Not Allowed", api_response.text
         )
 
-    # @patch("awokado.resource.Transaction", autospec=True)
-    # def test_notnullablelist_field(self, session_patch):
-    #     self.patch_session(session_patch)
-    #
-    #     api_response = self.simulate_get(
-    #         f"/v1/store/{self.store_id}",
-    #     )
-    #     self.assertEqual(api_response.status, "200 OK", api_response.text)
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_notnullablelist_field(self, session_patch):
+        self.patch_session(session_patch)
 
-    # payload = api_response.json['payload']['store'][0]
-    # self.assertEqual(payload['book_ids'], [self.book_id])
+        api_response = self.simulate_get(f"/v1/store/{self.store_id}")
+        self.assertEqual(api_response.status, "200 OK", api_response.text)
+
+        payload = api_response.json["store"][0]
+        self.assertEqual(payload["book_ids"], [self.book_id])
+
+        payload = {"store": {"name": "bestbooks"}}
+        api_response = self.simulate_post("/v1/store", json=payload)
+        self.assertEqual(api_response.status, "200 OK", api_response.text)
+        store_id = api_response.json["store"][0]["id"]
+
+        api_response = self.simulate_get(f"/v1/store/{store_id}")
+        self.assertEqual(api_response.status, "200 OK", api_response.text)
+
+        payload = api_response.json["store"][0]
+        self.assertEqual(payload["book_ids"], [])
