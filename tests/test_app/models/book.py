@@ -15,4 +15,10 @@ class Book(Model):
     )
 
     description = sa.Column(sa.Text)
+    store_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey("stores.id", onupdate="CASCADE", ondelete="SET NULL"),
+        index=True,
+        nullable=True,
+    )
     title = sa.Column(sa.Text)

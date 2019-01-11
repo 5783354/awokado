@@ -2,9 +2,9 @@ from unittest.mock import patch
 
 import sqlalchemy as sa
 
+from tests.base import BaseAPITest
 from .test_app import models as m
 from .test_app.routes import api
-from tests.base import BaseAPITest
 
 
 class AuthorTest(BaseAPITest):
@@ -33,8 +33,8 @@ class AuthorTest(BaseAPITest):
 
         author_id = self.session.execute(
             sa.insert(m.Author)
-            .values({m.Author.name: "Steven"})
-            .returning(m.Author.id)
+                .values({m.Author.name: "Steven"})
+                .returning(m.Author.id)
         ).scalar()
 
         payload = {"author": [{"id": author_id, "name": "Steven King"}]}
@@ -53,8 +53,8 @@ class AuthorTest(BaseAPITest):
 
         author_id = self.session.execute(
             sa.insert(m.Author)
-            .values({m.Author.name: "Steven"})
-            .returning(m.Author.id)
+                .values({m.Author.name: "Steven"})
+                .returning(m.Author.id)
         ).scalar()
 
         api_response = self.simulate_delete(f"/v1/author/{author_id}")

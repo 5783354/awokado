@@ -23,6 +23,9 @@ class BookResource(BaseResource):
     author = custom_fields.ToOne(
         resource="author", model_field=m.Book.author_id
     )
+    store_id = custom_fields.ToOne(
+        resource="store", model_field=m.Book.store_id
+    )
 
     def create(self, session, payload: dict, user_id: int) -> dict:
         # prepare data to insert
@@ -51,6 +54,7 @@ class BookResource(BaseResource):
                     m.Book.title.label("title"),
                     m.Book.description.label("description"),
                     m.Book.author_id.label("author"),
+                    m.Book.store_id.label("store"),
                 ]
             )
             .select_from(
@@ -103,13 +107,14 @@ class BookResource(BaseResource):
                     m.Book.id.label("id"),
                     m.Book.title.label("title"),
                     m.Book.description.label("description"),
+                    m.Book.store_id.label("store"),
                     authors,
                 ]
             )
             .select_from(
                 sa.outerjoin(m.Book, m.Author, m.Author.id == m.Book.author_id)
             )
-            .where(m.Book.id.in_(obj_ids))
+            .where(m.Book.author_id.in_(obj_ids))
             .group_by(m.Book.id)
         )
         result = session.execute(q).fetchall()
