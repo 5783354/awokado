@@ -18,9 +18,7 @@ class StoreResource(BaseResource):
 
     id = fields.Int(model_field=m.Store.id)
     book_ids = custom_fields.NotNullableList(
-        fields.Int(),
-        model_field=m.Book.id,
-        allow_none=True,
+        fields.Int(), model_field=m.Book.id, allow_none=True
     )
     name = fields.String(model_field=m.Store.name, required=True)
 
@@ -33,8 +31,8 @@ class StoreResource(BaseResource):
         # insert to DB
         resource_id = session.execute(
             sa.insert(self.Meta.model)
-                .values(data_to_insert)
-                .returning(self.Meta.model.id)
+            .values(data_to_insert)
+            .returning(self.Meta.model.id)
         ).scalar()
 
         result = self.read_handler(
@@ -49,11 +47,13 @@ class StoreResource(BaseResource):
                 [
                     m.Store.id.label("id"),
                     m.Store.name.label("name"),
-                    sa.func.array_agg(m.Book.id).label('book_ids'),
+                    sa.func.array_agg(m.Book.id).label("book_ids"),
                 ]
-            ).select_from(
+            )
+            .select_from(
                 sa.outerjoin(m.Store, m.Book, m.Store.id == m.Book.store_id)
-            ).group_by(m.Store.id)
+            )
+            .group_by(m.Store.id)
         )
 
         if not ctx.is_list:

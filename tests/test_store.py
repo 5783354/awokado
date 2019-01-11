@@ -10,14 +10,14 @@ from tests.test_app.routes import api
 class StoreTest(BaseAPITest):
     def setup_dataset(self):
         self.store_id = self.session.execute(
-            sa.insert(m.Store).values(
-                {m.Store.name: "bookstore"}
-            ).returning(m.Store.id)
+            sa.insert(m.Store)
+            .values({m.Store.name: "bookstore"})
+            .returning(m.Store.id)
         ).scalar()
         self.book_id = self.session.execute(
-            sa.insert(m.Book).values(
-                {m.Book.title: "new", m.Book.store_id: self.store_id}
-            ).returning(m.Book.id)
+            sa.insert(m.Book)
+            .values({m.Book.title: "new", m.Book.store_id: self.store_id})
+            .returning(m.Book.id)
         ).scalar()
 
     def setUp(self):
@@ -35,14 +35,7 @@ class StoreTest(BaseAPITest):
     @patch("awokado.resource.Transaction", autospec=True)
     def test_update(self, session_patch):
         self.patch_session(session_patch)
-        payload = {
-            "store": [
-                {
-                    "id": self.store_id,
-                    "name": "new name"
-                }
-            ]
-        }
+        payload = {"store": [{"id": self.store_id, "name": "new name"}]}
 
         api_response = self.simulate_patch("/v1/store/", json=payload)
         self.assertEqual(
@@ -67,6 +60,5 @@ class StoreTest(BaseAPITest):
     #     )
     #     self.assertEqual(api_response.status, "200 OK", api_response.text)
 
-        # payload = api_response.json['payload']['store'][0]
-        # self.assertEqual(payload['book_ids'], [self.book_id])
-
+    # payload = api_response.json['payload']['store'][0]
+    # self.assertEqual(payload['book_ids'], [self.book_id])
