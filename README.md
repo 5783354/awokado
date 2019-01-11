@@ -10,6 +10,12 @@ API is close to OpenAPI 3.0 specification
 
 **Currently is under active development**
 
+# Setup
+
+Awokado uses [dynaconf](https://github.com/rochacbruno/dynaconf/) for loading it settings
+
+You can find all available variables in .env.example file
+
 # Filtering
 #### syntax
 `resource_field_name`[`operator`]=`value`
