@@ -36,7 +36,8 @@ class NotNullableList(fields.List):
             return []
         if utils.is_collection(value):
             return [
-                self.container._serialize(each, attr, obj) for each in value
+                self.container._serialize(each, attr, obj)
+                for each in value
                 if each is not None
             ]
         return [self.container._serialize(value, attr, obj)]
