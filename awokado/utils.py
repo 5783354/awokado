@@ -11,11 +11,11 @@ from typing import NamedTuple, Optional
 import falcon
 from sqlalchemy import desc, asc
 
-import settings
+from awokado import settings
 from awokado.exceptions import BaseApiException
 from awokado.filter_parser import parse_filters
 
-log = logging.getLogger("API")
+log = logging.getLogger("awokado")
 
 
 class AuthBundle(NamedTuple):
@@ -90,7 +90,7 @@ def json_error_serializer(
     origin = origin2 or origin
     headers = {}
 
-    if settings.DEBUG:
+    if settings.AWOKADO_DEBUG:
         headers["Access-Control-Allow-Origin"] = origin
     else:
         if origin and origin in settings.ORIGIN_HOSTS:

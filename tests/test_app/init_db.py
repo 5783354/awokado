@@ -1,12 +1,13 @@
 from sqlalchemy import create_engine
 
-from settings import (
+from awokado.settings import (
     DATABASE_USER,
     DATABASE_PASSWORD,
     DATABASE_HOST,
     DATABASE_PORT,
     DATABASE_DB,
-    DATABASE_URL)
+    DATABASE_URL,
+)
 from .models import Model
 
 DATABASE_URL_MAIN = "postgresql://{}:{}@{}:{}".format(
