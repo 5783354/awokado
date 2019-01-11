@@ -21,7 +21,9 @@ ACCESS_CONTROL_HEADERS = [
     ("Access-Control-Max-Age", "3600"),
 ]
 
-AWOKADO_AUTH_BEARER_SECRET = os.getenv("AWOKADO_AUTH_BEARER_SECRET", "XXX")
+AWOKADO_AUTH_BEARER_SECRET = settings.get(
+    "AWOKADO_AUTH_BEARER_SECRET", "YourSecretTokenHere"
+)
 ###############################################################################
 # DB Settings
 ###############################################################################

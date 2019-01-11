@@ -7,7 +7,9 @@ from awokado import settings
 
 
 def set_bearer_header(resp: falcon.response.Response, payload: dict) -> str:
-    token = jwt.encode(payload, settings.AWOKADO_AUTH_BEARER_SECRET, algorithm="HS256")
+    token = jwt.encode(
+        payload, settings.AWOKADO_AUTH_BEARER_SECRET, algorithm="HS256"
+    )
     resp.set_header("Authorization", f"Bearer {token}")
     return token
 
