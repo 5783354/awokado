@@ -9,6 +9,7 @@ from stairs import Transaction
 from awokado.auth import BaseAuth
 from awokado.consts import AUDIT_DEBUG
 from awokado.custom_fields import ToMany, ToOne
+from awokado.db import DATABASE_URL
 from awokado.exceptions import (
     BadRequest,
     BadFilter,
@@ -103,9 +104,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Update
         """
 
-        with Transaction() as t:
+        with Transaction(DATABASE_URL) as t:
             session = t.session
-            user_id, token = self.auth(session, req, resp)
+            user_id, _ = self.auth(session, req, resp)
 
             self.validate_update_request(req, resp)
 
@@ -132,7 +133,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Create
         """
 
-        with Transaction() as t:
+        with Transaction(DATABASE_URL) as t:
             session = t.session
             user_id, token = self.auth(session, req, resp)
 
@@ -169,7 +170,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         :param req: falcon.request.Request
         :param resp: falcon.response.Response
         """
-        with Transaction() as t:
+        with Transaction(DATABASE_URL) as t:
             session = t.session
             user_id, token = self.auth(session, req, resp)
             params = get_read_params(req, self.__class__)
@@ -190,7 +191,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Delete
         """
 
-        with Transaction() as t:
+        with Transaction(DATABASE_URL) as t:
             session = t.session
             user_id, token = self.auth(session, req, resp)
 

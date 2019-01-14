@@ -6,9 +6,10 @@ import random
 import string
 
 import boto3
-
 from dynaconf import settings
+
 from awokado.consts import DEFAULT_ACCESS_CONTROL_HEADERS
+from awokado.utils import rand_string
 
 
 class HttpMiddleware:
@@ -110,10 +111,10 @@ def save_profiling_info_to_file(profile):
     marshaled_stats = marshal.dumps(stats.stats)
 
     now = datetime.datetime.now()
-    key = "{}-{}.prof".format(
-        now.strftime("%Y-%m-%d"),
-        now.strftime("%Y-%m-%dT%H-%M-%S"),
-        "".join(random.choice(string.ascii_lowercase) for _ in range(10)),
+    key = (
+        f"{now.strftime('%Y-%m-%d')}"
+        f"/ {now.strftime('%Y-%m-%dT%H-%M-%S')}"
+        f"- {rand_string()}.prof"
     )
     with open(key, "w") as f:
         f.write(marshaled_stats.decode(encoding="utf-8"))

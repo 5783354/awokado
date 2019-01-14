@@ -1,13 +1,11 @@
 import falcon
 
 from awokado.middleware import HttpMiddleware
-from awokado.db import DATABASE_URL
 from .resources.author import AuthorResource
 from .resources.book import BookResource
 from .resources.store import StoreResource
 from awokado.utils import api_exception_handler
 
-assert DATABASE_URL
 api = falcon.API(middleware=[HttpMiddleware()])
 
 ###############################################################################

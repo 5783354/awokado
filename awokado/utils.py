@@ -1,11 +1,13 @@
 import datetime
 import hashlib
+import json
 import logging
 import random
 import string
 import sys
 import traceback
 import uuid
+from json import JSONDecodeError
 from typing import NamedTuple, Optional
 
 import falcon
@@ -135,8 +137,8 @@ def api_exception_handler(error, req, resp, params):
             json_data = error.to_json()
 
             try:
-                json_data = falcon.json.loads(json_data)
-            except:
+                json_data = json.loads(json_data)
+            except (TypeError, JSONDecodeError):
                 json_data = json_data
 
             resp.body = falcon.json.dumps({"error": json_data})
