@@ -118,9 +118,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             data = payload[self.Meta.name]
             ids = [d.get(self.Meta.model.id.key) for d in data]
 
-            if not all(ids):
-                raise BadRequest(details="Invalid update arguments")
-
             if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
                 self.Meta.auth.can_update(session, user_id, ids)
 
@@ -307,10 +304,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         for f in ctx.query:
             resource_field = resource_fields.get(f.field)
 
-            if not resource_field:
-                raise BadFilter(
-                    details="Filed <{}> doesn't exist".format(f.field)
-                )
+            # if not resource_field:
+            #     raise BadFilter(
+            #         details="Filed <{}> doesn't exist".format(f.field)
+            #     )
 
             model_field = resource_field.metadata.get("model_field")
 

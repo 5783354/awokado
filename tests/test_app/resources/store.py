@@ -1,15 +1,15 @@
+from typing import List
+
 import sqlalchemy as sa
 from marshmallow import fields
 
-from typing import List
-
 import tests.test_app.models as m
-from awokado.consts import CREATE, READ
-from awokado.resource import BaseResource
 from awokado import custom_fields
+from awokado.consts import CREATE, READ
+from tests.test_app.resources.base import Resource
 
 
-class StoreResource(BaseResource):
+class StoreResource(Resource):
     class Meta:
         model = m.Store
         name = "store"
@@ -61,8 +61,24 @@ class StoreResource(BaseResource):
 
         ctx.q = q
 
-    def auth(self, *args, **kwargs):
-        return None, None
+    def get_by_book_ids(
+        self, session, user_id: int, obj_ids: List[int], field: sa.Column = None
+    ):
+        q = (
+            sa.select(
+                [
+                    m.Store.id.label("id"),
+                    m.Store.name.label("name"),
+                    sa.func.array_agg(m.Book.id).label("book_ids"),
+                ]
+            )
+            .select_from(
+                sa.outerjoin(m.Store, m.Book, m.Store.id == m.Book.store_id)
+            )
+            .where(m.Book.id.in_(obj_ids))
+            .group_by(m.Store.id)
+        )
 
-    def audit_log(self, *args, **kwargs):
-        ...
+        result = session.execute(q).fetchall()
+        serialized_objs, errors = self.dump(result, many=True)
+        return serialized_objs

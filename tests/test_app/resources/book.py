@@ -7,10 +7,10 @@ import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE, OP_IN
 from awokado.filter_parser import OPERATORS_MAPPING, FilterItem
-from awokado.resource import BaseResource
+from tests.test_app.resources.base import Resource
 
 
-class BookResource(BaseResource):
+class BookResource(Resource):
     class Meta:
         model = m.Book
         name = "book"
@@ -23,9 +23,7 @@ class BookResource(BaseResource):
     author = custom_fields.ToOne(
         resource="author", model_field=m.Book.author_id
     )
-    store_id = custom_fields.ToOne(
-        resource="store", model_field=m.Book.store_id
-    )
+    store = custom_fields.ToOne(resource="store", model_field=m.Book.store_id)
 
     def create(self, session, payload: dict, user_id: int) -> dict:
         # prepare data to insert
@@ -120,9 +118,3 @@ class BookResource(BaseResource):
         result = session.execute(q).fetchall()
         serialized_objs, errors = self.dump(result, many=True)
         return serialized_objs
-
-    def auth(self, *args, **kwargs):
-        return None, None
-
-    def audit_log(self, *args, **kwargs):
-        ...

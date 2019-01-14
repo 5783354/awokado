@@ -7,10 +7,10 @@ import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE, OP_IN
 from awokado.filter_parser import OPERATORS_MAPPING, FilterItem
-from awokado.resource import BaseResource
+from tests.test_app.resources.base import Resource
 
 
-class AuthorResource(BaseResource):
+class AuthorResource(Resource):
     class Meta:
         model = m.Author
         name = "author"
@@ -112,9 +112,3 @@ class AuthorResource(BaseResource):
         result = session.execute(q).fetchall()
         serialized_objs, errors = self.dump(result, many=True)
         return serialized_objs
-
-    def auth(self, *args, **kwargs):
-        return None, None
-
-    def audit_log(self, *args, **kwargs):
-        ...
