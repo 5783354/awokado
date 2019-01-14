@@ -15,8 +15,8 @@ class BookTest(BaseAPITest):
     def create_author(self, name):
         author_id = self.session.execute(
             sa.insert(m.Author)
-                .values({m.Author.name: name})
-                .returning(m.Author.id)
+            .values({m.Author.name: name})
+            .returning(m.Author.id)
         ).scalar()
         return author_id
 
@@ -48,10 +48,10 @@ class BookTest(BaseAPITest):
         author_id = self.create_author("Steven King")
         book_id = self.session.execute(
             sa.insert(m.Book)
-                .values(
+            .values(
                 {m.Book.title: "The Dead Zone", m.Book.author_id: author_id}
             )
-                .returning(m.Book.id)
+            .returning(m.Book.id)
         ).scalar()
 
         payload = {
@@ -89,8 +89,8 @@ class BookTest(BaseAPITest):
 
         book_id = self.session.execute(
             sa.insert(m.Book)
-                .values({m.Book.title: "The Dead Zone"})
-                .returning(m.Book.id)
+            .values({m.Book.title: "The Dead Zone"})
+            .returning(m.Book.id)
         ).scalar()
 
         api_response = self.simulate_delete(f"/v1/book/{book_id}")
@@ -99,4 +99,6 @@ class BookTest(BaseAPITest):
         self.assertDictEqual(api_response.json, dict())
 
         api_response = self.simulate_delete(f"/v1/book")
-        self.assertEqual(api_response.status, "401 Unauthorized", api_response.json)
+        self.assertEqual(
+            api_response.status, "401 Unauthorized", api_response.json
+        )
