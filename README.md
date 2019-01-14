@@ -13,7 +13,7 @@ API is close to OpenAPI 3.0 specification
 
 Awokado uses [dynaconf](https://github.com/rochacbruno/dynaconf/) for loading it settings
 
-You can find all available variables in .env.example file
+You can find all available variables in `settings.toml` file
 
 # Filtering
 #### syntax

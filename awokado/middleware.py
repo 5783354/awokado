@@ -7,7 +7,8 @@ import string
 
 import boto3
 
-from awokado import settings
+from dynaconf import settings
+from awokado.consts import DEFAULT_ACCESS_CONTROL_HEADERS
 
 
 class HttpMiddleware:
@@ -39,7 +40,11 @@ class HttpMiddleware:
                     name="Access-Control-Allow-Origin", value=origin
                 )
 
-        resp.set_headers(settings.ACCESS_CONTROL_HEADERS)
+        resp.set_headers(
+            settings.get(
+                "AWOKADO_ACCESS_CONTROL_HEADERS", DEFAULT_ACCESS_CONTROL_HEADERS
+            )
+        )
 
     def process_resource(self, req, resp, resource, params):
         """Process the request and resource *after* routing.

@@ -18,3 +18,13 @@ OP_ILIKE = "ilike"
 OP_IN = "in"
 OP_EMPTY = "empty"
 OP_CONTAINS = "contains"
+
+DEFAULT_ACCESS_CONTROL_HEADERS = [
+    [
+        "Access-Control-Allow-Headers",
+        "Content-Type, X-File-Size, X-File-Name, Authorization",
+    ],
+    ["Access-Control-Allow-Credentials", "true"],
+    ["Access-Control-Allow-Methods", "POST, PATCH, GET, OPTIONS, DELETE"],
+    ["Access-Control-Max-Age", "3600"],
+]

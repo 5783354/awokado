@@ -8,11 +8,6 @@ tests:
   - postgres:9.6.7
   variables:
     PIP_DOWNLOAD_CACHE: /cache/pip/.pip_download_cache
-    DEBUG: 1
-    POSTGRES_DB: test
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: postgres
-    DATABASE_HOST: postgres
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/pip-cache"
 
   before_script:

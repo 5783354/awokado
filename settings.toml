@@ -1,0 +1,30 @@
+[default]
+    AWOKADO_DEBUG=true
+
+    ###############################################################################
+    # DB settings
+    ###############################################################################
+    DATABASE_PASSWORD='postgres'
+    DATABASE_HOST='postgres'
+    DATABASE_USER='postgres'
+    DATABASE_PORT=5432
+    DATABASE_DB='test'
+
+    ###############################################################################
+    # HTTP headers
+    ###############################################################################
+    AWOKADO_ORIGIN_HOSTS=['https://frontend-domain-name.here:port']
+    AWOKADO_ACCESS_CONTROL_HEADERS = [["Access-Control-Allow-Headers","Content-Type, X-File-Size, X-File-Name, Authorization"],["Access-Control-Allow-Credentials", "true"],["Access-Control-Allow-Methods", "POST, PATCH, GET, OPTIONS, DELETE"],["Access-Control-Max-Age", "3600"],]
+
+    ###############################################################################
+    # Auth settings
+    ###############################################################################
+    AWOKADO_AUTH_BEARER_SECRET = 'YourSecretTokenHere'
+
+    ###############################################################################
+    # AWS S3 Settings
+    ###############################################################################
+    AWOKADO_AWS_S3_DEBUG_PROFILING_ACCESS_KEY = ''
+    AWOKADO_AWS_S3_DEBUG_PROFILING_SECRET_KEY = ''
+    AWOKADO_AWS_S3_DEBUG_PROFILING_BUCKET_NAME = ''
+    AWOKADO_ENABLE_UPLOAD_DEBUG_PROFILING_TO_S3 = false

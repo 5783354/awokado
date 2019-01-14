@@ -92,4 +92,4 @@ tags
 .coveragerc
 .idea
 .env
-settings.py
+.secrets.*

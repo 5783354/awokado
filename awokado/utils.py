@@ -11,7 +11,9 @@ from typing import NamedTuple, Optional
 import falcon
 from sqlalchemy import desc, asc
 
-from awokado import settings
+from dynaconf import settings
+
+from awokado.consts import DEFAULT_ACCESS_CONTROL_HEADERS
 from awokado.exceptions import BaseApiException
 from awokado.filter_parser import parse_filters
 
@@ -96,7 +98,10 @@ def json_error_serializer(
         if origin and origin in settings.ORIGIN_HOSTS:
             headers["Access-Control-Allow-Origin"] = origin
 
-    for k, v in settings.ACCESS_CONTROL_HEADERS:
+    headers_to_set = settings.get(
+        "AWOKADO_ACCESS_CONTROL_HEADERS", DEFAULT_ACCESS_CONTROL_HEADERS
+    )
+    for k, v in headers_to_set:
         headers[k] = v
 
     resp.set_headers(headers)

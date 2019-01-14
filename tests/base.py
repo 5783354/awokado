@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session as _Session
 from sqlalchemy.pool import NullPool
 from stairs import Transaction
 
-from awokado import settings
+import awokado.db
+from dynaconf import settings
 
 
 class Session(_Session):
@@ -24,7 +25,7 @@ class DbTest(unittest.TestCase):
 
     def __setup_engine(self):
         self._engine = sa.create_engine(
-            settings.DATABASE_URL, poolclass=NullPool
+            awokado.db.DATABASE_URL, poolclass=NullPool
         )
 
     def setUp(self):

@@ -1,9 +1,9 @@
 from sqlalchemy import create_engine
 
-from awokado.settings import (
-    DATABASE_USER,
+from awokado.db import (
     DATABASE_PASSWORD,
     DATABASE_HOST,
+    DATABASE_USER,
     DATABASE_PORT,
     DATABASE_DB,
     DATABASE_URL,
