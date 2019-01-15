@@ -1,10 +1,10 @@
 import falcon
 
 from awokado.middleware import HttpMiddleware
+from awokado.utils import api_exception_handler
 from .resources.author import AuthorResource
 from .resources.book import BookResource
 from .resources.store import StoreResource
-from awokado.utils import api_exception_handler
 
 api = falcon.API(middleware=[HttpMiddleware()])
 

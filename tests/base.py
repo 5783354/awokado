@@ -8,7 +8,6 @@ from sqlalchemy.pool import NullPool
 from stairs import Transaction
 
 import awokado.db
-from dynaconf import settings
 
 
 class Session(_Session):
