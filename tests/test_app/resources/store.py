@@ -25,7 +25,7 @@ class StoreResource(Resource):
     def create(self, session, payload: dict, user_id: int) -> dict:
         # prepare data to insert
         data = payload[self.Meta.name]
-        result, errors = self.load(data)
+        result = self.load(data)
         data_to_insert = self._to_create(result)
 
         # insert to DB
@@ -80,5 +80,5 @@ class StoreResource(Resource):
         )
 
         result = session.execute(q).fetchall()
-        serialized_objs, errors = self.dump(result, many=True)
+        serialized_objs = self.dump(result, many=True)
         return serialized_objs

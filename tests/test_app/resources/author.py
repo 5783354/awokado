@@ -27,7 +27,7 @@ class AuthorResource(Resource):
     def create(self, session, payload: dict, user_id: int) -> dict:
         # prepare data to insert
         data = payload[self.Meta.name]
-        result, errors = self.load(data)
+        result = self.load(data)
         data_to_insert = self._to_create(result)
 
         # insert to DB
@@ -70,7 +70,7 @@ class AuthorResource(Resource):
         # prepare data for update
         data = payload[self.Meta.name]
 
-        result, errors = self.load(data, many=True)
+        result = self.load(data, many=True, partial=True)
         data_to_update = self._to_update(result)
 
         ids = [d.get(self.Meta.model.id.key) for d in data_to_update]
@@ -110,5 +110,5 @@ class AuthorResource(Resource):
             .group_by(m.Author.id)
         )
         result = session.execute(q).fetchall()
-        serialized_objs, errors = self.dump(result, many=True)
+        serialized_objs = self.dump(result, many=True)
         return serialized_objs
