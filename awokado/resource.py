@@ -404,7 +404,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         ctx.q.append_column(sa.func.count().over().label("total"))
         result = session.execute(ctx.q).fetchall()
 
-        serialized_data, errors = self.dump(result, many=True)
+        serialized_data = self.dump(result, many=True)
 
         ctx.obj_ids.extend([_i["id"] for _i in serialized_data])
         ctx.parent_payload = serialized_data
