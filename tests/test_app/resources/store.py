@@ -22,25 +22,6 @@ class StoreResource(Resource):
     )
     name = fields.String(model_field=m.Store.name, required=True)
 
-    def create(self, session, payload: dict, user_id: int) -> dict:
-        # prepare data to insert
-        data = payload[self.Meta.name]
-        result = self.load(data)
-        data_to_insert = self._to_create(result)
-
-        # insert to DB
-        resource_id = session.execute(
-            sa.insert(self.Meta.model)
-            .values(data_to_insert)
-            .returning(self.Meta.model.id)
-        ).scalar()
-
-        result = self.read_handler(
-            session=session, user_id=user_id, resource_id=resource_id
-        )
-
-        return result
-
     def read__query(self, ctx):
         q = (
             sa.select(

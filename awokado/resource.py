@@ -7,7 +7,14 @@ from marshmallow.schema import SchemaMeta
 from stairs import Transaction
 
 from awokado.auth import BaseAuth
-from awokado.consts import AUDIT_DEBUG
+from awokado.consts import (
+    AUDIT_DEBUG,
+    UPDATE,
+    BULK_UPDATE,
+    CREATE,
+    OP_IN,
+    DELETE,
+)
 from awokado.custom_fields import ToMany, ToOne
 from awokado.db import DATABASE_URL
 from awokado.exceptions import (
@@ -18,7 +25,11 @@ from awokado.exceptions import (
     RelationNotFound,
     UnsupportedMethod,
 )
-from awokado.filter_parser import filter_value_to_python, FilterItem
+from awokado.filter_parser import (
+    filter_value_to_python,
+    FilterItem,
+    OPERATORS_MAPPING,
+)
 from awokado.utils import (
     get_sort_way,
     empty_response,
@@ -56,6 +67,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     class Meta:
         name = "base_resource"
         methods = tuple()
+        model = None
         auth = BaseAuth
         skip_doc = True
 
@@ -69,6 +81,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         resp: falcon.response.Response,
         is_bulk=False,
     ):
+        methods = self.Meta.methods
+        if CREATE not in methods:
+            raise MethodNotAllowed()
+
         payload = json.load(req.stream)
         errors = self.validate(payload.get(self.Meta.name), many=is_bulk)
 
@@ -80,6 +96,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     def validate_update_request(
         self, req: falcon.request.Request, resp: falcon.response.Response
     ):
+        methods = self.Meta.methods
+        if UPDATE not in methods and BULK_UPDATE not in methods:
+            raise MethodNotAllowed()
+
         payload = json.load(req.stream)
         errors = self.validate(
             payload.get(self.Meta.name), partial=True, many=True
@@ -200,6 +220,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
                     details="Bulk deletion is forbidden"
                 )
 
+            if DELETE not in self.Meta.methods:
+                raise MethodNotAllowed()
+
             if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
                 self.Meta.auth.can_delete(session, user_id, [resource_id])
 
@@ -211,14 +234,52 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     # Resource methods
     ###########################################################################
 
-    def update(self, session, payload: dict, user_id: int, resource_id: int):
-        raise MethodNotAllowed()
+    def update(
+        self, session, payload: dict, user_id: int, resource_id: int = None
+    ) -> dict:
+        # prepare data for update
+        data = payload[self.Meta.name]
 
-    def create(self, session, payload: dict, user_id: int):
-        raise MethodNotAllowed()
+        result = self.load(data, many=True, partial=True)
+        data_to_update = self._to_update(result)
+
+        ids = [_i.get(self.Meta.model.id.key) for _i in data_to_update]
+
+        session.bulk_update_mappings(self.Meta.model, data_to_update)
+
+        op = OPERATORS_MAPPING[OP_IN]
+        result = self.read_handler(
+            session=session,
+            user_id=user_id,
+            filters=[FilterItem("id", op[0], op[1], ids)],
+        )
+
+        return result
+
+    def create(self, session, payload: dict, user_id: int) -> dict:
+        # prepare data to insert
+        data = payload[self.Meta.name]
+        result = self.load(data)
+        data_to_insert = self._to_create(result)
+
+        # insert to DB
+        resource_id = session.execute(
+            sa.insert(self.Meta.model)
+            .values(data_to_insert)
+            .returning(self.Meta.model.id)
+        ).scalar()
+
+        result = self.read_handler(
+            session=session, user_id=user_id, resource_id=resource_id
+        )
+
+        return result
 
     def delete(self, session, user_id: int, resource_id: int):
-        raise MethodNotAllowed()
+        session.execute(
+            sa.delete(self.Meta.model).where(self.Meta.model.id == resource_id)
+        )
+        return {}
 
     def _to_update(self, data: list) -> list:
         """

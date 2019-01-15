@@ -1,9 +1,8 @@
 from typing import Optional
 
 import falcon
-from jose import jwt
-
 from dynaconf import settings
+from jose import jwt
 
 
 def set_bearer_header(resp: falcon.response.Response, payload: dict) -> str:

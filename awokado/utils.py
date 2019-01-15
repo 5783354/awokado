@@ -11,9 +11,8 @@ from json import JSONDecodeError
 from typing import NamedTuple, Optional
 
 import falcon
-from sqlalchemy import desc, asc
-
 from dynaconf import settings
+from sqlalchemy import desc, asc
 
 from awokado.consts import DEFAULT_ACCESS_CONTROL_HEADERS
 from awokado.exceptions import BaseApiException
