@@ -33,6 +33,7 @@ setup(
         "pyaml",
         "PyJWT",
         "stairs",
+        "python-jose",
     ),
     python_requires=">=3.6",
 )
