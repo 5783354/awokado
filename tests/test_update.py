@@ -72,7 +72,6 @@ class UpdateTest(BaseAPITest):
         self.assertEqual(
             api_response.status, "400 Bad Request", api_response.json
         )
-        print(api_response.json)
         self.assertDictEqual(
             api_response.json["detail"],
             {
