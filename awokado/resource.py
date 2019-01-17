@@ -432,7 +432,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
                 related_res_obj = related_res()
                 related_data = getattr(related_res_obj, method_name)(
-                    session, ctx.uid, ctx.obj_ids, related_field
+                    session, ctx, related_field
                 )
                 self.__add_related_payload(ctx, related_res, related_data)
 

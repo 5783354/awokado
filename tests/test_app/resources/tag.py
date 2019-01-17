@@ -7,6 +7,7 @@ import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE, OP_IN
 from awokado.filter_parser import OPERATORS_MAPPING, FilterItem
+from awokado.utils import ReadContext
 from tests.test_app.resources.base import Resource
 
 
@@ -123,7 +124,7 @@ class TagResource(Resource):
             session.execute(sa.insert(m.M2M_Book_Tag).values(m2m_to_insert))
 
     def get_by_book_ids(
-        self, session, user_id: int, obj_ids: List[int], field: str = None
+        self, session, ctx: ReadContext, field: str = None
     ):
         """
         :param user_id:     User id
@@ -136,7 +137,7 @@ class TagResource(Resource):
                     m.M2M_Book_Tag, m.Tag, m.M2M_Book_Tag.c.tag_id == m.Tag.id
                 )
             )
-            .where(m.M2M_Book_Tag.c.book_id.in_(obj_ids))
+            .where(m.M2M_Book_Tag.c.book_id.in_(ctx.obj_ids))
         )
 
         result = session.execute(q).fetchall()
