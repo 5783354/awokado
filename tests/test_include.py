@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 import sqlalchemy as sa
 
-from awokado.exceptions import RelationNotFound, NotFound
 from tests.base import BaseAPITest
 from tests.test_app import models as m
 from tests.test_app.routes import api

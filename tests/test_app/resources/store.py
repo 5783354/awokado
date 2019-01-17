@@ -6,6 +6,7 @@ from marshmallow import fields
 import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ
+from awokado.utils import ReadContext
 from tests.test_app.resources.base import Resource
 
 
@@ -21,25 +22,6 @@ class StoreResource(Resource):
         fields.Int(), model_field=m.Book.id, allow_none=True
     )
     name = fields.String(model_field=m.Store.name, required=True)
-
-    def create(self, session, payload: dict, user_id: int) -> dict:
-        # prepare data to insert
-        data = payload[self.Meta.name]
-        result, errors = self.load(data)
-        data_to_insert = self._to_create(result)
-
-        # insert to DB
-        resource_id = session.execute(
-            sa.insert(self.Meta.model)
-            .values(data_to_insert)
-            .returning(self.Meta.model.id)
-        ).scalar()
-
-        result = self.read_handler(
-            session=session, user_id=user_id, resource_id=resource_id
-        )
-
-        return result
 
     def read__query(self, ctx):
         q = (
@@ -62,7 +44,7 @@ class StoreResource(Resource):
         ctx.q = q
 
     def get_by_book_ids(
-        self, session, user_id: int, obj_ids: List[int], field: sa.Column = None
+        self, session, ctx: ReadContext, field: sa.Column = None
     ):
         q = (
             sa.select(
@@ -75,10 +57,10 @@ class StoreResource(Resource):
             .select_from(
                 sa.outerjoin(m.Store, m.Book, m.Store.id == m.Book.store_id)
             )
-            .where(m.Book.id.in_(obj_ids))
+            .where(m.Book.id.in_(ctx.obj_ids))
             .group_by(m.Store.id)
         )
 
         result = session.execute(q).fetchall()
-        serialized_objs, errors = self.dump(result, many=True)
+        serialized_objs = self.dump(result, many=True)
         return serialized_objs

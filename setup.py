@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="awokado",
-    version="0.1b8",
+    version="0.1b11",
     description="Fast and flexible API framework based on Falcon and SQLAlchemy",
     author="Dmitry Karnei",
     author_email="5783354@gmail.com",
@@ -29,10 +29,11 @@ setup(
         "boto3",
         "dynaconf",
         "falcon",
-        "marshmallow==2.16.3",
+        "marshmallow>=3.0.0rc3",
         "pyaml",
         "PyJWT",
         "stairs",
+        "python-jose",
     ),
     python_requires=">=3.6",
 )

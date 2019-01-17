@@ -39,6 +39,7 @@ class BookTest(BaseAPITest):
                 "author": author_id,
                 "description": None,
                 "store": None,
+                "tags": [],
             },
         )
 
@@ -80,6 +81,7 @@ class BookTest(BaseAPITest):
                 ),
                 "author": author_id,
                 "store": None,
+                "tags": [],
             },
         )
 

@@ -1,13 +1,12 @@
 import falcon
 
 from awokado.middleware import HttpMiddleware
-from awokado.db import DATABASE_URL
+from awokado.utils import api_exception_handler
 from .resources.author import AuthorResource
 from .resources.book import BookResource
 from .resources.store import StoreResource
-from awokado.utils import api_exception_handler
+from .resources.tag import TagResource
 
-assert DATABASE_URL
 api = falcon.API(middleware=[HttpMiddleware()])
 
 ###############################################################################
@@ -19,6 +18,8 @@ api.add_route("/v1/book/", BookResource())
 api.add_route("/v1/book/{resource_id}", BookResource())
 api.add_route("/v1/store/", StoreResource())
 api.add_route("/v1/store/{resource_id}", StoreResource())
+api.add_route("/v1/tag/", TagResource())
+api.add_route("/v1/tag/{resource_id}", TagResource())
 
 ###############################################################################
 ###############################################################################
