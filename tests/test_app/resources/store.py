@@ -6,6 +6,7 @@ from marshmallow import fields
 import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ
+from awokado.utils import ReadContext
 from tests.test_app.resources.base import Resource
 
 
@@ -43,7 +44,7 @@ class StoreResource(Resource):
         ctx.q = q
 
     def get_by_book_ids(
-        self, session, user_id: int, obj_ids: List[int], field: sa.Column = None
+        self, session, ctx: ReadContext, field: sa.Column = None
     ):
         q = (
             sa.select(
@@ -56,7 +57,7 @@ class StoreResource(Resource):
             .select_from(
                 sa.outerjoin(m.Store, m.Book, m.Store.id == m.Book.store_id)
             )
-            .where(m.Book.id.in_(obj_ids))
+            .where(m.Book.id.in_(ctx.obj_ids))
             .group_by(m.Store.id)
         )
 
