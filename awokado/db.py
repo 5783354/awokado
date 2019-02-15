@@ -22,8 +22,8 @@ clavis.configure(DATABASE_URL)
 persistent_engine = sa.create_engine(
     DATABASE_URL,
     encoding='utf-8',
-    echo=getattr(settings, 'DB_ECHO', False),
+    echo=settings.get('DB_ECHO', False),
     poolclass=QueuePool,
-    pool_size=getattr(settings, 'DB_CONN_POOL_SIZE', 10),
-    max_overflow=getattr(settings, 'DB_CONN_MAX_OVERFLOW', 5),
+    pool_size=settings.get('DB_CONN_POOL_SIZE', 10),
+    max_overflow=settings.get('DB_CONN_MAX_OVERFLOW', 5),
 )
