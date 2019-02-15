@@ -3,6 +3,8 @@ import json
 import falcon
 import sqlalchemy as sa
 from marshmallow import Schema
+from marshmallow import fields
+from marshmallow.fields import List
 from marshmallow.schema import SchemaMeta
 from stairs import Transaction
 
@@ -14,6 +16,7 @@ from awokado.consts import (
     CREATE,
     OP_IN,
     DELETE,
+    OP_CONTAINS
 )
 from awokado.custom_fields import ToMany, ToOne
 from awokado.db import DATABASE_URL
@@ -132,15 +135,15 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
             payload = req.stream
 
-            self.audit_log(
-                f"Update: {self.Meta.name}", payload, user_id, AUDIT_DEBUG
-            )
-
             data = payload[self.Meta.name]
             ids = [d.get(self.Meta.model.id.key) for d in data]
 
             if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
                 self.Meta.auth.can_update(session, user_id, ids)
+
+            self.audit_log(
+                f"Update: {self.Meta.name}", payload, user_id, AUDIT_DEBUG
+            )
 
             result = self.update(session, payload, user_id, resource_id)
 
@@ -157,12 +160,12 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             session = t.session
             user_id, token = self.auth(session, req, resp)
 
-            if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
-                self.Meta.auth.can_create(session, user_id, skip_exc=False)
-
             self.validate_create_request(req, resp)
 
             payload = req.stream
+
+            if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
+                self.Meta.auth.can_create(session, user_id, skip_exc=False)
 
             self.audit_log(
                 f"Create: {self.Meta.name}", payload, user_id, AUDIT_DEBUG
@@ -379,8 +382,18 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             value = f.wrapper(f.value)
             value = filter_value_to_python(value)
 
-            if value is not None and not isinstance(value, list):
-                value = resource_field.deserialize(value)
+            list_deserialization = (
+                isinstance(value, list) and not isinstance(resource_field, List)
+            )
+
+            if value is not None:
+                if list_deserialization:
+                    value = [
+                        resource_field.deserialize(item)
+                        for item in value
+                    ]
+                else:
+                    value = resource_field.deserialize(value)
 
             field_expr = getattr(model_field, f.op)(value)
             filters_to_apply.append(field_expr)
