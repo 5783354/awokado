@@ -118,8 +118,9 @@ def api_exception_handler(error, req, resp, params):
         if error.has_representation:
             json_error_serializer(req, resp, error)
 
-        exc_info = sys.exc_info()
-        log.error("User error: ", exc_info=exc_info)
+        if settings.get("AWOKADO_LOG_USERS_EXCEPTIONS", False):
+            exc_info = sys.exc_info()
+            log.error("User error: ", exc_info=exc_info)
 
     elif isinstance(error, falcon.HTTPNotFound):
         resp.status = "404 Not Found"
