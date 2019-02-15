@@ -5,7 +5,7 @@ import sqlalchemy as sa
 from falcon import testing
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.pool import NullPool
-from stairs import Transaction
+from clavis import Transaction
 
 import awokado.db
 

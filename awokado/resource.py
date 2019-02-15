@@ -4,7 +4,7 @@ import falcon
 import sqlalchemy as sa
 from marshmallow import Schema
 from marshmallow.schema import SchemaMeta
-from stairs import Transaction
+from clavis import Transaction
 
 from awokado.auth import BaseAuth
 from awokado.consts import (
@@ -16,7 +16,7 @@ from awokado.consts import (
     DELETE,
 )
 from awokado.custom_fields import ToMany, ToOne
-from awokado.db import DATABASE_URL
+from awokado.db import DATABASE_URL, persistent_engine
 from awokado.exceptions import (
     BadRequest,
     BadFilter,
@@ -124,7 +124,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Update
         """
 
-        with Transaction(DATABASE_URL) as t:
+        with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
             user_id, _ = self.auth(session, req, resp)
 
@@ -153,7 +153,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Create
         """
 
-        with Transaction(DATABASE_URL) as t:
+        with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
             user_id, token = self.auth(session, req, resp)
 
@@ -190,7 +190,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         :param req: falcon.request.Request
         :param resp: falcon.response.Response
         """
-        with Transaction(DATABASE_URL) as t:
+        with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
             user_id, token = self.auth(session, req, resp)
             params = get_read_params(req, self.__class__)
@@ -211,7 +211,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Delete
         """
 
-        with Transaction(DATABASE_URL) as t:
+        with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
             user_id, token = self.auth(session, req, resp)
 
