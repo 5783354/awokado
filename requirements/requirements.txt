@@ -2,6 +2,6 @@ boto3
 falcon
 marshmallow>=3.0.0rc3
 python-jose
-stairs
+clavis
 psycopg2-binary
 dynaconf

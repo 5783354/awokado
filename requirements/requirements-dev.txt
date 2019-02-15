@@ -8,6 +8,6 @@ psycopg2-binary
 pudb
 pyaml
 python-jose
-stairs
+clavis
 black
 dynaconf

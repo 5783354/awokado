@@ -32,7 +32,7 @@ setup(
         "marshmallow>=3.0.0rc3",
         "pyaml",
         "PyJWT",
-        "stairs",
+        "clavis",
         "python-jose",
     ),
     python_requires=">=3.6",
