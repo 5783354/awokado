@@ -1,4 +1,6 @@
 alembic
+apispec
+jinja2
 boto3
 bcrypt
 falcon

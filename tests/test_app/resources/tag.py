@@ -123,9 +123,7 @@ class TagResource(Resource):
         if m2m_to_insert:
             session.execute(sa.insert(m.M2M_Book_Tag).values(m2m_to_insert))
 
-    def get_by_book_ids(
-        self, session, ctx: ReadContext, field: str = None
-    ):
+    def get_by_book_ids(self, session, ctx: ReadContext, field: str = None):
         """
         :param user_id:     User id
         :return:            serialized JSON response

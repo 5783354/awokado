@@ -16,6 +16,7 @@ Awokado uses [dynaconf](https://github.com/rochacbruno/dynaconf/) for loading it
 You can find all available variables in `settings.toml` file
 
 # Filtering
+
 #### syntax
 `resource_field_name`\[`operator`\]=`value`
 #### available operators
@@ -34,7 +35,8 @@ it’s equal to SQL statement: `SELECT * FROM users WHERE username ILIKE '%Andy%
 `/v1/user/?id[in]=1,2,3,4`
 it’s equal to SQL statement: `SELECT * FROM users WHERE id IN (1,2,3,4);`
 
-# sorting
+# Sorting
+
 #### syntax
 
 sort=`resource_field_name`,`-another_resource_field_name`
@@ -43,7 +45,7 @@ use `-` for descending order
 #### examples
 `/v1/user/?sort=name,-record_created`
 
-# includes
+# Includes
 
 #### syntax
 include=`resource_relation_name`
@@ -54,7 +56,8 @@ include=`resource_relation_name`
 
 `/v1/author/?include=books,stores`
 
-#limit \ offset
+# Limit \ Offset (pagination)
+
 #### syntax
 
 limit=`integer`&offset=`integer`
@@ -65,6 +68,34 @@ limit=`integer`&offset=`integer`
 `/v1/user/?offset=10`
 
 `/v1/user/?limit=2000`
+
+# Contributing
+
+### Tests
+
+To run tests locally you should create `.secrets.toml` file in the project root directory:
+
+```toml
+[default]
+    DATABASE_PASSWORD='your_db_password_here'
+    DATABASE_HOST='localhost'
+    DATABASE_USER='your_db_username_here'
+    DATABASE_PORT=5432 #DB port
+    DATABASE_DB='test'
+
+```
+Install required packages:
+
+`$ pip install -r requirements/requirements-dev.txt`
+
+Then you can setup your database: 
+
+`$ python -m tests.test_app.init_db`
+
+And run tests:
+
+`$ python -m unittest`
+
 
 # Authors
 Is being made with the help of

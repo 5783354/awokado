@@ -1,7 +1,10 @@
 boto3
+apispec
+jinja2
 falcon
 marshmallow>=3.0.0rc3
 python-jose
 clavis
+pyaml
 psycopg2-binary
 dynaconf
