@@ -16,7 +16,7 @@ from awokado.consts import (
     CREATE,
     OP_IN,
     DELETE,
-    OP_CONTAINS
+    OP_CONTAINS,
 )
 from awokado.custom_fields import ToMany, ToOne
 from awokado.db import DATABASE_URL, persistent_engine
@@ -382,16 +382,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             value = f.wrapper(f.value)
             value = filter_value_to_python(value)
 
-            list_deserialization = (
-                isinstance(value, list) and not isinstance(resource_field, List)
+            list_deserialization = isinstance(value, list) and not isinstance(
+                resource_field, List
             )
 
             if value is not None:
                 if list_deserialization:
-                    value = [
-                        resource_field.deserialize(item)
-                        for item in value
-                    ]
+                    value = [resource_field.deserialize(item) for item in value]
                 else:
                     value = resource_field.deserialize(value)
 

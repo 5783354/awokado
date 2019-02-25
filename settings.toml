@@ -1,5 +1,6 @@
 [default]
     AWOKADO_DEBUG=true
+    AWOKADO_LOG_USERS_EXCEPTIONS=true
 
     ###############################################################################
     # DB settings
