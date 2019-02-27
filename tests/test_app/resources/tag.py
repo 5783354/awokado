@@ -7,7 +7,7 @@ import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE, OP_IN
 from awokado.filter_parser import OPERATORS_MAPPING, FilterItem
-from awokado.utils import ReadContext
+from awokado.utils import ReadContext, OuterJoin
 from tests.test_app.resources.base import Resource
 
 
@@ -20,7 +20,14 @@ class TagResource(Resource):
 
     id = fields.Int(model_field=m.Tag.id)
     name = fields.String(model_field=m.Tag.name)
-    books = custom_fields.ToMany(fields.Int(), resource="book")
+    books = custom_fields.ToMany(
+        fields.Int(),
+        resource="book",
+        model_field=m.M2M_Book_Tag.c.book_id,
+        join=OuterJoin(
+            m.M2M_Book_Tag, m.Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
+        ),
+    )
 
     def create(self, session, payload: dict, user_id: int) -> dict:
         # prepare data to insert
@@ -42,26 +49,6 @@ class TagResource(Resource):
         )
 
         return result
-
-    def read__query(self, ctx):
-        books = sa.func.array_remove(
-            sa.func.array_agg(m.M2M_Book_Tag.c.book_id), None
-        ).label("books")
-
-        q = (
-            sa.select([m.Tag.id.label("id"), m.Tag.name.label("name"), books])
-            .select_from(
-                sa.outerjoin(
-                    m.M2M_Book_Tag, m.Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
-                )
-            )
-            .group_by(m.Tag.id)
-        )
-
-        if not ctx.is_list:
-            q = q.where(m.Tag.id == ctx.resource_id)
-
-        ctx.q = q
 
     def update(
         self, session, payload: dict, user_id: int, resource_id: int = None
