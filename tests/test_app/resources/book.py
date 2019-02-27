@@ -7,6 +7,7 @@ import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE, OP_IN
 from awokado.filter_parser import FilterItem, OPERATORS_MAPPING
+from awokado.utils import OuterJoin
 from tests.test_app.resources.base import Resource
 
 
@@ -24,7 +25,14 @@ class BookResource(Resource):
         resource="author", model_field=m.Book.author_id
     )
     store = custom_fields.ToOne(resource="store", model_field=m.Book.store_id)
-    tags = custom_fields.ToMany(fields.Int(), resource="tag")
+    tags = custom_fields.ToMany(
+        fields.Int(),
+        resource="tag",
+        model_field=m.M2M_Book_Tag.c.tag_id,
+        join=OuterJoin(
+            m.Book, m.M2M_Book_Tag, m.Book.id == m.M2M_Book_Tag.c.book_id
+        ),
+    )
 
     def create(self, session, payload: dict, user_id: int) -> dict:
         # prepare data to insert
@@ -47,37 +55,6 @@ class BookResource(Resource):
         )
 
         return result
-
-    def read__query(self, ctx):
-        tags = sa.func.array_remove(
-            sa.func.array_agg(m.M2M_Book_Tag.c.tag_id), None
-        ).label("tags")
-
-        q = (
-            sa.select(
-                [
-                    m.Book.id.label("id"),
-                    m.Book.title.label("title"),
-                    m.Book.description.label("description"),
-                    m.Book.author_id.label("author"),
-                    m.Book.store_id.label("store"),
-                    tags,
-                ]
-            )
-            .select_from(
-                sa.outerjoin(
-                    m.Book, m.Author, m.Author.id == m.Book.author_id
-                ).outerjoin(
-                    m.M2M_Book_Tag, m.Book.id == m.M2M_Book_Tag.c.book_id
-                )
-            )
-            .group_by(m.Book.id)
-        )
-
-        if not ctx.is_list:
-            q = q.where(m.Book.id == ctx.resource_id)
-
-        ctx.q = q
 
     def update(
         self, session, payload: dict, user_id: int, resource_id: int = None

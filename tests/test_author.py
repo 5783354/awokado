@@ -24,7 +24,7 @@ class AuthorTest(BaseAPITest):
         self.assertIsNotNone(id_)
         self.assertDictEqual(
             api_response.json["author"][0],
-            {"id": id_, "name": "Steven King", "books_count": 0},
+            {"id": id_, "name": "Steven King", "books_count": 0, "books": []},
         )
 
     @patch("awokado.resource.Transaction", autospec=True)
@@ -44,7 +44,12 @@ class AuthorTest(BaseAPITest):
 
         self.assertDictEqual(
             api_response.json["payload"]["author"][0],
-            {"id": author_id, "name": "Steven King", "books_count": 0},
+            {
+                "id": author_id,
+                "name": "Steven King",
+                "books_count": 0,
+                "books": [],
+            },
         )
 
     @patch("awokado.resource.Transaction", autospec=True)

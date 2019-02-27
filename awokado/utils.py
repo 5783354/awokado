@@ -26,6 +26,12 @@ class AuthBundle(NamedTuple):
     auth_token: str
 
 
+class OuterJoin(NamedTuple):
+    left: object
+    right: object
+    onclause: bool
+
+
 def rand_string(size=8, chars=string.ascii_uppercase + string.digits):
     return "".join(random.choice(chars) for _ in range(size))
 
@@ -72,6 +78,15 @@ def get_read_params(req, resource) -> dict:
 
     params["filters"] = parse_filters(req._params, resource)
     return params
+
+
+def has_resource_auth(resource):
+    if not hasattr(resource.Meta, "auth"):
+        return False
+    if resource.Meta.auth is None:
+        return False
+
+    return True
 
 
 def json_error_serializer(

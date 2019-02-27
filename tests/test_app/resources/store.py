@@ -6,7 +6,7 @@ from marshmallow import fields
 import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ
-from awokado.utils import ReadContext
+from awokado.utils import ReadContext, OuterJoin
 from tests.test_app.resources.base import Resource
 
 
@@ -18,30 +18,12 @@ class StoreResource(Resource):
         auth = None
 
     id = fields.Int(model_field=m.Store.id)
-    book_ids = custom_fields.NotNullableList(
-        fields.Int(), model_field=m.Book.id, allow_none=True
+    book_ids = custom_fields.ToMany(
+        fields.Int(),
+        model_field=m.Book.id,
+        join=OuterJoin(m.Store, m.Book, m.Store.id == m.Book.store_id),
     )
     name = fields.String(model_field=m.Store.name, required=True)
-
-    def read__query(self, ctx):
-        q = (
-            sa.select(
-                [
-                    m.Store.id.label("id"),
-                    m.Store.name.label("name"),
-                    sa.func.array_agg(m.Book.id).label("book_ids"),
-                ]
-            )
-            .select_from(
-                sa.outerjoin(m.Store, m.Book, m.Store.id == m.Book.store_id)
-            )
-            .group_by(m.Store.id)
-        )
-
-        if not ctx.is_list:
-            q = q.where(m.Store.id == ctx.resource_id)
-
-        ctx.q = q
 
     def get_by_book_ids(
         self, session, ctx: ReadContext, field: sa.Column = None

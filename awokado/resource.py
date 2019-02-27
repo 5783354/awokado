@@ -38,6 +38,7 @@ from awokado.utils import (
     empty_response,
     get_read_params,
     ReadContext,
+    has_resource_auth,
 )
 
 
@@ -164,7 +165,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
             payload = req.stream
 
-            if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
+            if has_resource_auth(self):
                 self.Meta.auth.can_create(session, user_id, skip_exc=False)
 
             self.audit_log(
@@ -226,7 +227,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             if DELETE not in self.Meta.methods:
                 raise MethodNotAllowed()
 
-            if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
+            if has_resource_auth(self):
                 self.Meta.auth.can_delete(session, user_id, [resource_id])
 
             result = self.delete(session, user_id, resource_id)
@@ -419,7 +420,53 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             ctx.q = ctx.q.offset(offset)
 
     def read__query(self, ctx):
-        raise UnsupportedMethod()
+        fields_to_select = {}
+        join_expressions = []
+
+        for field_name, field in self.fields.items():
+            model_field = field.metadata.get("model_field")
+            if model_field is None:
+                raise Exception(
+                    f"{self.Meta.name}.{field_name} field must have "
+                    f"'model_field' argument"
+                )
+
+            to_join = field.metadata.get("join")
+            if to_join:
+                join_expressions.append(to_join)
+
+            if isinstance(field, ToMany):
+                fields_to_select[field_name] = sa.func.array_remove(
+                    sa.func.array_agg(model_field), None
+                )
+            elif isinstance(field, ToOne):
+                fields_to_select[field_name] = model_field
+            else:
+                fields_to_select[field_name] = model_field
+
+        q = sa.select([clm.label(lbl) for lbl, clm in fields_to_select.items()])
+
+        if join_expressions:
+            joins = sa.outerjoin(
+                join_expressions[0].left,
+                join_expressions[0].right,
+                join_expressions[0].onclause,
+            )
+            for _j in join_expressions[1:]:
+                joins = joins.outerjoin(_j.right, _j.onclause)
+
+            q = q.select_from(joins)
+
+        if not ctx.is_list:
+            q = q.where(self.Meta.model.id == ctx.resource_id)
+
+        if has_resource_auth(self):
+            q = self.Meta.auth.can_read(ctx, q)
+
+        if join_expressions:
+            q = q.group_by(self.Meta.model.id)
+
+        ctx.q = q
 
     def read__includes(self, session, ctx: ReadContext):
         for i in ctx.include or []:

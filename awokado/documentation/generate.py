@@ -260,7 +260,7 @@ def generate_documentation(
 
     pyaml.add_representer(Decimal, decimal_presenter)
 
-    output_dir = output_dir.rstrip('/')
+    output_dir = output_dir.rstrip("/")
 
     with open(f"{output_dir}/swagger.yaml", "w") as f:
         result = pyaml.dump(data, safe=True)
