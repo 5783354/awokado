@@ -6,7 +6,7 @@ API is close to OpenAPI 3.0 specification
 
 **Currently is under active development**
 
- ![Awokado Diagram](awokado_diagram.png)
+ ![Awokado Diagram](https://raw.githubusercontent.com/5783354/awokado/master/awokado_diagram.png)
 
 # Changelog
 
