@@ -30,7 +30,8 @@ setup(
             {"api", "rest", "wsgi", "falcon", "sqlalchemy", "sqlalchemy-core"}
         )
     ),
-    packages=setuptools.find_packages(where="./awokado"),
+    package_dir={'': 'awokado'},
+    packages=setuptools.find_packages(where="awokado"),
     install_requires=(
         "bcrypt",
         "boto3",
