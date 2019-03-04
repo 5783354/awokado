@@ -8,7 +8,6 @@ from tests.test_app.routes import api
 
 
 class ExceptionTest(BaseAPITest):
-
     def setup_dataset(self):
         self.store_id = self.session.execute(
             sa.insert(m.Store)

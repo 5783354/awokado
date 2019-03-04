@@ -9,4 +9,3 @@ class Author(Model):
     id = Model.PK()
     first_name = sa.Column(sa.Text, nullable=False)
     last_name = sa.Column(sa.Text, nullable=False)
-
