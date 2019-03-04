@@ -10,7 +10,7 @@ API is close to OpenAPI 3.0 specification
 
 # Changelog
 
-You can find in: [CHANGELOG.md](CHANGELOG.md)
+You can find in: [CHANGELOG.md](https://gitlab.com/5783354/awokado/blob/master/CHANGELOG.md)
 
 # Installation
 
