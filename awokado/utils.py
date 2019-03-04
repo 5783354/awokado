@@ -58,7 +58,11 @@ def empty_response(resource, is_list=False):
         resource_name = resource.Meta.name
 
     if is_list:
-        return {"payload": {resource_name: []}, "meta": {"total": 0}}
+        response = {"payload": {resource_name: []}, "meta": None}
+        if not resource.Meta.disable_total:
+            response["meta"] = {"total": 0}
+        return response
+
     else:
         return {resource_name: []}
 

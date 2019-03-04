@@ -62,6 +62,9 @@ class ResourceMeta(SchemaMeta):
         if not hasattr(res_meta, "auth"):
             raise Exception(f"{cls_name} must have Meta.auth")
 
+        if not hasattr(res_meta, "disable_total"):
+            res_meta.disable_total = False
+
         return new_resource
 
 
@@ -74,6 +77,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         model = None
         auth = BaseAuth
         skip_doc = True
+        disable_total = False
 
     ###########################################################################
     # Marshmallow validation methods
@@ -515,13 +519,17 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         response.update(ctx.related_payload)
 
         if ctx.is_list:
-            meta_payload = {"total": ctx.total or 0}
-            response = {"meta": meta_payload, "payload": response}
+            response = {"payload": response, "meta": None}
+
+            if not self.Meta.disable_total:
+                response['meta'] = {"total": ctx.total or 0}
 
         return response
 
     def read__execute_query(self, session, ctx: ReadContext):
-        ctx.q.append_column(sa.func.count().over().label("total"))
+        if not self.Meta.disable_total:
+            ctx.q.append_column(sa.func.count().over().label("total"))
+
         result = session.execute(ctx.q).fetchall()
 
         serialized_data = self.dump(result, many=True)
@@ -529,5 +537,5 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         ctx.obj_ids.extend([_i["id"] for _i in serialized_data])
         ctx.parent_payload = serialized_data
 
-        if serialized_data:
+        if serialized_data and not self.Meta.disable_total:
             ctx.total = result[0].total

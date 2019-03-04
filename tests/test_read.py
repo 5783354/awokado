@@ -75,3 +75,18 @@ class ReadTest(BaseAPITest):
         # TODO: change to 404 Not Found
         self.assertEqual(resp.status, "400 Bad Request", resp.text)
         self.assertEqual(resp.json["detail"], "Object Not Found")
+
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_disable_total(self, session_patch):
+        self.patch_session(session_patch)
+        self.create_tag("Fantastic")
+        self.create_tag("Fantastic")
+        self.create_tag("Fantastic")
+        tags = self.session.execute(sa.select([sa.func.count(m.Tag.id)])).scalar()
+        self.assertTrue(tags == 3)
+
+        resp = self.simulate_get("/v1/tag")
+
+        self.assertEqual(resp.status, "200 OK", resp.text)
+        self.assertEqual(len(resp.json["payload"]["tag"]), 3, resp.json)
+        self.assertEqual(resp.json["meta"], None, resp.json)
