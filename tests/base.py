@@ -2,12 +2,13 @@ import unittest
 from unittest import mock
 
 import sqlalchemy as sa
+from clavis import Transaction
 from falcon import testing
 from sqlalchemy.orm import Session as _Session
 from sqlalchemy.pool import NullPool
-from clavis import Transaction
 
 import awokado.db
+from tests.test_app import models as m
 
 
 class Session(_Session):
@@ -68,3 +69,14 @@ class BaseAPITest(testing.TestCase, DbTest):
         mock_client = mock.MagicMock(spec=Transaction)
         mock_client.__enter__.return_value = X
         session_patch.return_value = mock_client
+
+    def create_author(self, name):
+        first_name, last_name = name.split()
+        author_id = self.session.execute(
+            sa.insert(m.Author)
+            .values(
+                {m.Author.first_name: first_name, m.Author.last_name: last_name}
+            )
+            .returning(m.Author.id)
+        ).scalar()
+        return author_id

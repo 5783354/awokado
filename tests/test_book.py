@@ -12,14 +12,6 @@ class BookTest(BaseAPITest):
         super().setUp()
         self.app = api
 
-    def create_author(self, name):
-        author_id = self.session.execute(
-            sa.insert(m.Author)
-            .values({m.Author.name: name})
-            .returning(m.Author.id)
-        ).scalar()
-        return author_id
-
     @patch("awokado.resource.Transaction", autospec=True)
     def test_create(self, session_patch):
         self.patch_session(session_patch)
@@ -102,5 +94,5 @@ class BookTest(BaseAPITest):
 
         api_response = self.simulate_delete(f"/v1/book")
         self.assertEqual(
-            api_response.status, "401 Unauthorized", api_response.json
+            api_response.status, "403 Forbidden", api_response.json
         )

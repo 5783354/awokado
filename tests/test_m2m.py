@@ -55,14 +55,6 @@ class M2MTest(BaseAPITest):
         self.app = api
         self.setup_dataset()
 
-    def create_author(self, name):
-        author_id = self.session.execute(
-            sa.insert(m.Author)
-            .values({m.Author.name: name})
-            .returning(m.Author.id)
-        ).scalar()
-        return author_id
-
     def create_tag(self, name):
         tag_id = self.session.execute(
             sa.insert(m.Tag).values({m.Tag.name: name}).returning(m.Tag.id)
