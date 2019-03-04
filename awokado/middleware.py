@@ -68,11 +68,15 @@ class HttpMiddleware:
                 resource's responder method as keyword
                 arguments.
         """
+        if not settings.get("AWOKADO_DEBUG"):
+            return
+
         profiling_enabled = req.get_param_as_bool("profiling")
         if profiling_enabled:
             profile = cProfile.Profile()
             profile.enable()
             req.profile = profile
+
         debugger_enabled = req.get_param_as_bool("debug")
         if debugger_enabled:
             from pudb.remote import set_trace
@@ -92,6 +96,8 @@ class HttpMiddleware:
                 while the awokado processed and routed the
                 request; otherwise False.
         """
+        if not settings.get("AWOKADO_DEBUG"):
+            return
 
         profiling_enabled = req.get_param_as_bool("profiling")
         if profiling_enabled:

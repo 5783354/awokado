@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Automated SQL generation for `POST/PATCH` requests 
 
+## [0.3b5] - 2019-03-04
+### Added
+
+- API simple workflow diagram
+- `disable_total` attr for Resource.Meta. Set it to `True` to avoid adding total column: `sa.func.count().over()`. Useful for `historical` tables, where pagination based on date instead of limit / offset to not overload SQL database
+
+### Fixes
+
+- Fixed `description` arg for `ToMany` and `ToOne` fields (was broken)
+
 ## [0.3b2] - 2019-03-01
 ### Added
 

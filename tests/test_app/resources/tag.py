@@ -17,6 +17,7 @@ class TagResource(Resource):
         name = "tag"
         methods = (CREATE, READ, UPDATE, BULK_UPDATE, DELETE)
         auth = None
+        disable_total = True
 
     id = fields.Int(model_field=m.Tag.id)
     name = fields.String(model_field=m.Tag.name)
@@ -25,7 +26,7 @@ class TagResource(Resource):
         resource="book",
         model_field=m.M2M_Book_Tag.c.book_id,
         join=OuterJoin(
-            m.M2M_Book_Tag, m.Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
+            m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
         ),
     )
 

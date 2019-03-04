@@ -55,12 +55,6 @@ class M2MTest(BaseAPITest):
         self.app = api
         self.setup_dataset()
 
-    def create_tag(self, name):
-        tag_id = self.session.execute(
-            sa.insert(m.Tag).values({m.Tag.name: name}).returning(m.Tag.id)
-        ).scalar()
-        return tag_id
-
     @patch("awokado.resource.Transaction", autospec=True)
     def test_read_include(self, session_patch):
         self.patch_session(session_patch)

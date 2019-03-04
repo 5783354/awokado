@@ -23,6 +23,7 @@ class AuthorResource(Resource):
         resource="book",
         model_field=m.Book.id,
         join=OuterJoin(m.Author, m.Book, m.Author.id == m.Book.author_id),
+        description="Authors Books",
     )
     books_count = fields.Int(
         dump_only=True, model_field=sa.func.count(m.Book.id)

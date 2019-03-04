@@ -80,3 +80,9 @@ class BaseAPITest(testing.TestCase, DbTest):
             .returning(m.Author.id)
         ).scalar()
         return author_id
+
+    def create_tag(self, name):
+        tag_id = self.session.execute(
+            sa.insert(m.Tag).values({m.Tag.name: name}).returning(m.Tag.id)
+        ).scalar()
+        return tag_id
