@@ -7,8 +7,8 @@ class Forbidden(BaseApiException):
     def __init__(self, details="", code="forbidden"):
         BaseApiException.__init__(
             self,
-            status=falcon.HTTP_401,
-            title=falcon.HTTP_401,
+            status=falcon.HTTP_403,
+            title=falcon.HTTP_403,
             code=code,
             details=details,
         )

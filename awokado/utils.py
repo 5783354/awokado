@@ -140,7 +140,7 @@ def api_exception_handler(error, req, resp, params):
     elif isinstance(error, falcon.HTTPNotFound):
         resp.status = "404 Not Found"
         resp.content_type = "application/json"
-        resp.body = falcon.json.dumps({"error": str(error)})
+        resp.body = falcon.json.dumps({"error": f"{req.path} not found"})
         resp.append_header("Vary", "Accept")
 
     else:
@@ -148,23 +148,27 @@ def api_exception_handler(error, req, resp, params):
         exc_info = sys.exc_info()
         log.error("api_exception_handler", exc_info=exc_info)
 
-        if hasattr(error, "to_dict"):
-            resp.body = falcon.json.dumps({"error": error.to_dict()})
+        if settings.get("AWOKADO_DEBUG"):
 
-        elif hasattr(error, "to_json"):
-            json_data = error.to_json()
+            if hasattr(error, "to_dict"):
+                resp.body = falcon.json.dumps({"error": error.to_dict()})
 
-            try:
-                json_data = json.loads(json_data)
-            except (TypeError, JSONDecodeError):
-                json_data = json_data
+            elif hasattr(error, "to_json"):
+                json_data = error.to_json()
 
-            resp.body = falcon.json.dumps({"error": json_data})
+                try:
+                    json_data = json.loads(json_data)
+                except (TypeError, JSONDecodeError):
+                    json_data = json_data
+
+                resp.body = falcon.json.dumps({"error": json_data})
+
+            else:
+                exc_data = "".join(traceback.format_exception(*sys.exc_info()))
+                resp.body = falcon.json.dumps({"error": exc_data})
 
         else:
-            exc_data = "".join(traceback.format_exception(*sys.exc_info()))
-            resp.body = falcon.json.dumps({"error": exc_data})
-        # Serialize exception
+            resp.body = falcon.json.dumps({"error": resp.status})
 
         # Set content type
         resp.content_type = "application/json"

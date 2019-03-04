@@ -27,7 +27,14 @@ class AuthorResource(Resource):
     books_count = fields.Int(
         dump_only=True, model_field=sa.func.count(m.Book.id)
     )
-    name = fields.String(model_field=m.Author.name, required=True)
+    name = fields.String(
+        model_field=sa.func.concat(
+            m.Author.first_name, " ", m.Author.last_name
+        ),
+        dump_only=True,
+    )
+    last_name = fields.String(model_field=m.Author.last_name, required=True)
+    first_name = fields.String(model_field=m.Author.first_name, required=True)
 
     def get_by_book_ids(
         self, session, user_id: int, obj_ids: List[int], field: sa.Column = None
@@ -37,7 +44,7 @@ class AuthorResource(Resource):
             sa.select(
                 [
                     m.Author.id.label("id"),
-                    m.Author.name.label("name"),
+                    self.fields.name.metadata["model_field"].label("name"),
                     books_count.label("books_count"),
                 ]
             )

@@ -7,4 +7,6 @@ class Author(Model):
     __tablename__ = "authors"
 
     id = Model.PK()
-    name = sa.Column(sa.Text, nullable=False)
+    first_name = sa.Column(sa.Text, nullable=False)
+    last_name = sa.Column(sa.Text, nullable=False)
+

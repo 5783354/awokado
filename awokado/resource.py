@@ -484,7 +484,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
                 if not hasattr(related_res, method_name):
                     raise BadRequest(
-                        f"Resource {related_resource_name} doesn't ready"
+                        f"Relation {related_resource_name} doesn't ready yet. "
+                        f"Ask developers to add {method_name} method "
+                        f"to {related_resource_name} resource"
                     )
 
                 related_res_obj = related_res()

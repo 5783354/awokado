@@ -1,9 +1,16 @@
+import setuptools
 from setuptools import setup
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 setup(
     name="awokado",
-    version="0.3b1",
+    version="0.3b2",
     description="Fast and flexible API framework based on Falcon and SQLAlchemy",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://gitlab.com/5783354/awokado",
     author="Dmitry Karnei",
     author_email="5783354@gmail.com",
     classifiers=(
@@ -23,7 +30,7 @@ setup(
             {"api", "rest", "wsgi", "falcon", "sqlalchemy", "sqlalchemy-core"}
         )
     ),
-    packages=["awokado", "awokado.exceptions", "awokado.documentation"],
+    packages=setuptools.find_packages(where="./awokado"),
     install_requires=(
         "bcrypt",
         "boto3",
