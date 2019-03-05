@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="awokado",
-    version="0.3b6",
+    version="0.3b7",
     description="Fast and flexible API framework based on Falcon and SQLAlchemy",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -33,6 +33,7 @@ setup(
     packages=["awokado", "awokado.exceptions", "awokado.documentation"],
     install_requires=(
         "bcrypt",
+        "bulky",
         "boto3",
         "dynaconf",
         "falcon",

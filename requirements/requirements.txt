@@ -1,4 +1,5 @@
 boto3
+bulky
 apispec
 jinja2
 falcon

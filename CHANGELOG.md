@@ -4,7 +4,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-- Automated SQL generation for `POST/PATCH` requests 
+- Automated SQL generation for `POST/PATCH` requests
+
+## [0.3b7] - 2019-03-05
+### Added
+
+- `bulk_create` method in base resource
+
+### Deprecated
+
+- `create` method (is going to be replaced with bulk_create)
 
 ## [0.3b5] - 2019-03-04
 ### Added

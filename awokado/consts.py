@@ -3,6 +3,7 @@ CREATE = "create"
 READ = "read"
 UPDATE = "update"
 BULK_UPDATE = "bulk_update"
+BULK_CREATE = "bulk_create"
 DELETE = "delete"
 
 # Audit logger level
