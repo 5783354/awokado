@@ -28,7 +28,7 @@ class StoreTest(BaseAPITest):
     @patch("awokado.resource.Transaction", autospec=True)
     def test_create(self, session_patch):
         self.patch_session(session_patch)
-        payload = {"store": {"name": "bestbooks"}}
+        payload = {"store": [{"name": "bestbooks"}]}
         api_response = self.simulate_post("/v1/store", json=payload)
         self.assertEqual(api_response.status, "200 OK", api_response.text)
 

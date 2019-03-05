@@ -1,3 +1,4 @@
+import bulky
 import json
 
 import falcon
@@ -12,12 +13,14 @@ from awokado.auth import BaseAuth
 from awokado.consts import (
     AUDIT_DEBUG,
     UPDATE,
+    BULK_CREATE,
     BULK_UPDATE,
     CREATE,
     OP_IN,
     DELETE,
     OP_CONTAINS,
 )
+
 from awokado.custom_fields import ToMany, ToOne
 from awokado.db import DATABASE_URL, persistent_engine
 from awokado.exceptions import (
@@ -28,6 +31,7 @@ from awokado.exceptions import (
     RelationNotFound,
     UnsupportedMethod,
 )
+from awokado.exceptions import Forbidden
 from awokado.filter_parser import (
     filter_value_to_python,
     FilterItem,
@@ -90,10 +94,14 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         is_bulk=False,
     ):
         methods = self.Meta.methods
-        if CREATE not in methods:
+        if CREATE not in methods and BULK_CREATE not in methods:
             raise MethodNotAllowed()
 
         payload = json.load(req.stream)
+
+        if isinstance(payload.get(self.Meta.name), list):
+            is_bulk = True
+
         errors = self.validate(payload.get(self.Meta.name), many=is_bulk)
 
         if errors:
@@ -267,7 +275,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     def create(self, session, payload: dict, user_id: int) -> dict:
         # prepare data to insert
         data = payload[self.Meta.name]
+
+        if isinstance(data, list):
+            result = self.bulk_create(session, user_id, data)
+            return result
+
         result = self.load(data)
+
         data_to_insert = self._to_create(result)
 
         # insert to DB
@@ -279,6 +293,31 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         result = self.read_handler(
             session=session, user_id=user_id, resource_id=resource_id
+        )
+
+        return result
+
+    def bulk_create(self, session, user_id: int, data: list) -> dict:
+        result = self.load(data, many=True)
+
+        data_to_insert = []
+        for item in result:
+            data_to_insert.append(self._to_create(item))
+
+        # insert to DB
+        resource_ids = bulky.insert(
+            session,
+            self.Meta.model,
+            data_to_insert,
+            returning=[self.Meta.model.id]
+        )
+        ids = [r.id for r in resource_ids]
+
+        op = OPERATORS_MAPPING[OP_IN]
+        result = self.read_handler(
+            session=session,
+            user_id=user_id,
+            filters=[FilterItem("id", op[0], op[1], ids)],
         )
 
         return result

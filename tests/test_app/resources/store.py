@@ -5,7 +5,7 @@ from marshmallow import fields
 
 import tests.test_app.models as m
 from awokado import custom_fields
-from awokado.consts import CREATE, READ
+from awokado.consts import CREATE, READ, BULK_CREATE
 from awokado.utils import ReadContext, OuterJoin
 from tests.test_app.resources.base import Resource
 
@@ -14,7 +14,7 @@ class StoreResource(Resource):
     class Meta:
         model = m.Store
         name = "store"
-        methods = (CREATE, READ)
+        methods = (CREATE, BULK_CREATE, READ)
         auth = None
 
     id = fields.Int(model_field=m.Store.id)
