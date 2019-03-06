@@ -35,6 +35,15 @@ class BookTest(BaseAPITest):
             },
         )
 
+        payload = {"book": [{"title": "The Dead Zone", "author": author_id}]}
+
+        api_response = self.simulate_post("/v1/book", json=payload)
+        self.assertEqual(
+            api_response.status,
+            "405 Method Not Allowed",
+            api_response.text
+        )
+
     @patch("awokado.resource.Transaction", autospec=True)
     def test_update(self, session_patch):
         self.patch_session(session_patch)

@@ -94,13 +94,16 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         is_bulk=False,
     ):
         methods = self.Meta.methods
-        if CREATE not in methods and BULK_CREATE not in methods:
-            raise MethodNotAllowed()
-
         payload = json.load(req.stream)
 
         if isinstance(payload.get(self.Meta.name), list):
+            request_method = BULK_CREATE
             is_bulk = True
+        else:
+            request_method = CREATE
+
+        if request_method not in methods:
+            raise MethodNotAllowed()
 
         errors = self.validate(payload.get(self.Meta.name), many=is_bulk)
 
