@@ -39,9 +39,7 @@ class BookTest(BaseAPITest):
 
         api_response = self.simulate_post("/v1/book", json=payload)
         self.assertEqual(
-            api_response.status,
-            "405 Method Not Allowed",
-            api_response.text
+            api_response.status, "405 Method Not Allowed", api_response.text
         )
 
     @patch("awokado.resource.Transaction", autospec=True)

@@ -13,8 +13,10 @@ tests:
   before_script:
   - pip install -r requirements/requirements.txt
   - pip install coverage
+  - pip install black --upgrade
   - python -m tests.test_app.init_db
 
   script:
+  - black -l 80 --check --diff ./
   - coverage run --source=awokado -m unittest discover
   - coverage report -m
