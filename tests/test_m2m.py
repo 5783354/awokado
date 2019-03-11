@@ -1,6 +1,7 @@
-from unittest.mock import patch
-
 import sqlalchemy as sa
+
+from unittest.mock import patch
+from falcon import status_codes as status
 
 from tests.base import BaseAPITest
 from tests.test_app import models as m
@@ -135,3 +136,144 @@ class M2MTest(BaseAPITest):
                 "tags": [self.tag1_id, self.tag2_id, self.tag3_id],
             },
         )
+
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_create_auto_save_m2m(self, session_patch):
+        self.patch_session(session_patch)
+        tags = self.session.execute(
+            sa.insert(m.Tag)
+            .values([{"name": "#testtag0001"}, {"name": "#testtag0002"}])
+            .returning(m.Tag.id)
+        ).fetchall()
+
+        book_data = {
+            "book": {
+                "title": "test cookbook",
+                "description": "some description",
+                "tags": [tag.id for tag in tags],
+            }
+        }
+        api_response = self.simulate_post("/v1/book", json=book_data)
+        self.assertEqual(api_response.status, "200 OK", api_response.text)
+        instance_id = api_response.json.get("book")[0].get("id")
+        book_tags = self.session.execute(
+            sa.select([m.Tag.id, m.M2M_Book_Tag.c.book_id])
+            .select_from(
+                sa.join(
+                    m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
+                )
+            )
+            .where(m.M2M_Book_Tag.c.book_id == instance_id)
+        ).fetchall()
+        expected_result = {item.id for item in tags}
+        actual_result = {item.id for item in book_tags}
+        self.assertEqual(expected_result, actual_result)
+
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_update_auto_save_m2m(self, session_patch):
+        self.patch_session(session_patch)
+        tags = self.session.execute(
+            sa.insert(m.Tag)
+            .values([{"name": "#testtag0001"}, {"name": "#testtag0002"}])
+            .returning(m.Tag.id)
+        ).fetchall()
+
+        other_tags = self.session.execute(
+            sa.insert(m.Tag)
+            .values([{"name": "#testtag0003"}, {"name": "#testtag0004"}])
+            .returning(m.Tag.id)
+        ).fetchall()
+
+        book = self.session.execute(
+            sa.insert(m.Book)
+            .values(
+                {"title": "test cookbook", "description": "some description"}
+            )
+            .returning(m.Book.id)
+        ).fetchone()
+
+        self.session.execute(
+            sa.insert(m.M2M_Book_Tag).values(
+                [
+                    {
+                        m.M2M_Book_Tag.c.tag_id: tag.id,
+                        m.M2M_Book_Tag.c.book_id: book.id,
+                    }
+                    for tag in tags
+                ]
+            )
+        )
+
+        book_data = {
+            "book": [
+                {
+                    "id": book.id,
+                    "title": "v2 test cookbook",
+                    "description": "v2 some description",
+                    "tags": [tag.id for tag in other_tags],
+                }
+            ]
+        }
+
+        api_response = self.simulate_patch("/v1/book/", json=book_data)
+        self.assertEqual(api_response.status, "200 OK", api_response.text)
+        instance_id = book.id
+        book_tags = self.session.execute(
+            sa.select([m.Tag.id, m.M2M_Book_Tag.c.book_id])
+            .select_from(
+                sa.join(
+                    m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
+                )
+            )
+            .where(m.M2M_Book_Tag.c.book_id == instance_id)
+        ).fetchall()
+        expected_result = {item.id for item in other_tags}
+        actual_result = {item.id for item in book_tags}
+        self.assertEqual(expected_result, actual_result)
+
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_fail_create_within_auto_save_m2m(self, session_patch):
+        self.patch_session(session_patch)
+        tags = [1001, 1002, 1003]
+        book_data = {
+            "book": {
+                "title": "test cookbook",
+                "description": "some description",
+                "tags": tags,
+            }
+        }
+        api_response = self.simulate_post("/v1/book", json=book_data)
+        self.assertEqual(
+            api_response.status, status.HTTP_BAD_REQUEST, api_response.text
+        )
+        self.assertIn("detail", api_response.json)
+        self.assertIn("tags", api_response.json.get("detail"))
+
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_fail_update_within_auto_save_m2m(self, session_patch):
+        self.patch_session(session_patch)
+        tags = [1001, 1002, 1003]
+        book = self.session.execute(
+            sa.insert(m.Book)
+            .values(
+                {"title": "test cookbook", "description": "some description"}
+            )
+            .returning(m.Book.id)
+        ).fetchone()
+
+        book_data = {
+            "book": [
+                {
+                    "id": book.id,
+                    "title": "v2 test cookbook",
+                    "description": "v2 some description",
+                    "tags": tags,
+                }
+            ]
+        }
+        api_response = self.simulate_patch("/v1/book", json=book_data)
+        self.assertEqual(
+            api_response.status, status.HTTP_BAD_REQUEST, api_response.text
+        )
+        self.assertIn("detail", api_response.json)
+        self.assertIn("tags", api_response.json.get("detail"))

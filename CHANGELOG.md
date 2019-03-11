@@ -4,7 +4,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+-
+
+## [0.3b10] - 2019-03-11
+### Added
+
 - Automated SQL generation for `POST/PATCH` requests
+
 
 ## [0.3b7] - 2019-03-05
 ### Added

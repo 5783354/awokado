@@ -7,6 +7,7 @@ import string
 import sys
 import traceback
 import uuid
+from functools import wraps
 from json import JSONDecodeError
 from typing import NamedTuple, Optional
 
@@ -226,3 +227,22 @@ def get_uuid_hash(string):
             + str(datetime.datetime.utcnow())
         ).encode("utf-8")
     ).hexdigest()
+
+
+class cached_property(property):
+    def __init__(self, func, name=None, **kwargs):
+        self.__name__ = name or func.__name__
+        self.__module__ = func.__module__
+        self.func = func
+
+    def __set__(self, obj, value):
+        obj.__dict__[self.__name__] = value
+
+    def __get__(self, obj, type=None):
+        if obj is None:
+            return self
+        value = obj.__dict__.get(self.__name__, None)
+        if value is None:
+            value = self.func(obj)
+            obj.__dict__[self.__name__] = value
+        return value

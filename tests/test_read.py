@@ -82,7 +82,9 @@ class ReadTest(BaseAPITest):
         self.create_tag("Fantastic")
         self.create_tag("Fantastic")
         self.create_tag("Fantastic")
-        tags = self.session.execute(sa.select([sa.func.count(m.Tag.id)])).scalar()
+        tags = self.session.execute(
+            sa.select([sa.func.count(m.Tag.id)])
+        ).scalar()
         self.assertTrue(tags == 3)
 
         resp = self.simulate_get("/v1/tag")

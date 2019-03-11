@@ -20,6 +20,7 @@ class StoreResource(Resource):
     id = fields.Int(model_field=m.Store.id)
     book_ids = custom_fields.ToMany(
         fields.Int(),
+        resource="book",
         model_field=m.Book.id,
         join=OuterJoin(m.Store, m.Book, m.Store.id == m.Book.store_id),
     )

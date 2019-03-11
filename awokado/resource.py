@@ -1,13 +1,13 @@
-import bulky
 import json
+from typing import Union
 
+import bulky
 import falcon
 import sqlalchemy as sa
-from marshmallow import Schema
-from marshmallow import fields
+from clavis import Transaction
+from marshmallow import utils, Schema
 from marshmallow.fields import List
 from marshmallow.schema import SchemaMeta
-from clavis import Transaction
 
 from awokado.auth import BaseAuth
 from awokado.consts import (
@@ -18,9 +18,7 @@ from awokado.consts import (
     CREATE,
     OP_IN,
     DELETE,
-    OP_CONTAINS,
 )
-
 from awokado.custom_fields import ToMany, ToOne
 from awokado.db import DATABASE_URL, persistent_engine
 from awokado.exceptions import (
@@ -29,9 +27,7 @@ from awokado.exceptions import (
     DeleteResourceForbidden,
     MethodNotAllowed,
     RelationNotFound,
-    UnsupportedMethod,
 )
-from awokado.exceptions import Forbidden
 from awokado.filter_parser import (
     filter_value_to_python,
     FilterItem,
@@ -43,6 +39,7 @@ from awokado.utils import (
     get_read_params,
     ReadContext,
     has_resource_auth,
+    cached_property,
 )
 
 
@@ -265,6 +262,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         ids = [_i.get(self.Meta.model.id.key) for _i in data_to_update]
 
         session.bulk_update_mappings(self.Meta.model, data_to_update)
+        self._save_m2m(session, data, update=True)
 
         op = OPERATORS_MAPPING[OP_IN]
         result = self.read_handler(
@@ -294,6 +292,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             .returning(self.Meta.model.id)
         ).scalar()
 
+        data["id"] = resource_id
+        self._save_m2m(session, data)
+
         result = self.read_handler(
             session=session, user_id=user_id, resource_id=resource_id
         )
@@ -312,7 +313,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             session,
             self.Meta.model,
             data_to_insert,
-            returning=[self.Meta.model.id]
+            returning=[self.Meta.model.id],
         )
         ids = [r.id for r in resource_ids]
 
@@ -564,7 +565,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             response = {"payload": response, "meta": None}
 
             if not self.Meta.disable_total:
-                response['meta'] = {"total": ctx.total or 0}
+                response["meta"] = {"total": ctx.total or 0}
 
         return response
 
@@ -581,3 +582,96 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         if serialized_data and not self.Meta.disable_total:
             ctx.total = result[0].total
+
+    def get_related_model(self, field: Union[ToOne, ToMany]):
+        resource_name = field.metadata.get("resource")
+        resource = self.RESOURCES[resource_name]
+        return resource.Meta.model
+
+    def _process_to_many_field(
+        self, field_name: str, field: Union[ToOne, ToMany]
+    ):
+        related_model = self.get_related_model(field)
+        resource_model = self.Meta.model
+        model_field = field.metadata.get("model_field")
+
+        if not isinstance(model_field, sa.Column):
+            model_field = getattr(
+                model_field.parent.persist_selectable.c, model_field.key
+            )
+
+        if related_model.__table__ == model_field.table:
+            for fk in model_field.table.foreign_keys:
+                if fk.column.table == resource_model.__table__:
+                    setattr(field, "left_fk_field", fk.parent)
+                    break
+        else:
+            setattr(field, "secondary", model_field.table)
+            for fk in model_field.table.foreign_keys:
+                if fk.column.table == related_model.__table__:
+                    setattr(field, "right_fk_field", fk.parent)
+
+                if fk.column.table == resource_model.__table__:
+                    setattr(field, "left_fk_field", fk.parent)
+
+        setattr(field, "related_model", related_model)
+        return field_name, field
+
+    @cached_property
+    def _to_many_fields(self) -> list:
+        return [
+            self._process_to_many_field(field_name, field)
+            for field_name, field in self.fields.items()
+            if isinstance(field, ToMany)
+        ]
+
+    @staticmethod
+    def check_exists(session, table: sa.Table, ids: list, field_name: str):
+        result = session.execute(
+            sa.select([table.c.id]).where(table.c.id.in_(ids))
+        )
+
+        missed = set(ids) - {item.id for item in result}
+        if missed:
+            err_msg = "objects with id {ids} does not exist".format(
+                ids=",".join(map(str, missed))
+            )
+            raise BadRequest({field_name: err_msg})
+
+    def _save_m2m(self, session, data: Union[list, dict], update: bool = False):
+        data = data if utils.is_collection(data) else [data]
+
+        for field_name, field in self._to_many_fields:
+            if hasattr(field, "secondary"):
+                many_2_many = []
+                for obj in data:
+                    if field_name in obj:
+                        many_2_many.extend(
+                            [
+                                {
+                                    field.left_fk_field: obj.get("id"),
+                                    field.right_fk_field: rel_id,
+                                }
+                                for rel_id in obj.get(field_name)
+                            ]
+                        )
+
+                if update:
+                    session.execute(
+                        sa.delete(field.secondary).where(
+                            field.left_fk_field.in_(
+                                [obj.get("id") for obj in data]
+                            )
+                        )
+                    )
+
+                if many_2_many:
+                    self.check_exists(
+                        session,
+                        field.related_model.__table__,
+                        [obj.get(field.right_fk_field) for obj in many_2_many],
+                        field_name,
+                    )
+                    session.execute(
+                        sa.insert(field.secondary).values(many_2_many)
+                    )
