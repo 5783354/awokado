@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 import sqlalchemy as sa
@@ -88,7 +89,59 @@ class ReadTest(BaseAPITest):
         self.assertTrue(tags == 3)
 
         resp = self.simulate_get("/v1/tag")
-
         self.assertEqual(resp.status, "200 OK", resp.text)
-        self.assertEqual(len(resp.json["payload"]["tag"]), 3, resp.json)
+        self.assertEqual(
+            len(resp.json["payload"]["tag"]), 3, json.dumps(resp.json, indent=4)
+        )
         self.assertEqual(resp.json["meta"], None, resp.json)
+
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_join_list(self, session_patch):
+        self.patch_session(session_patch)
+        tag1_id = self.create_tag("Fantastic")
+        tag2_id = self.create_tag("Science")
+        tag3_id = self.create_tag("Leisure")
+        unused_tag = self.create_tag("XXX")
+
+        self.session.execute(
+            sa.insert(m.M2M_Book_Tag).values(
+                [
+                    {
+                        m.M2M_Book_Tag.c.book_id: self.book1_id,
+                        m.M2M_Book_Tag.c.tag_id: tag1_id,
+                    },
+                    {
+                        m.M2M_Book_Tag.c.book_id: self.book1_id,
+                        m.M2M_Book_Tag.c.tag_id: tag2_id,
+                    },
+                    {
+                        m.M2M_Book_Tag.c.book_id: self.book2_id,
+                        m.M2M_Book_Tag.c.tag_id: tag2_id,
+                    },
+                    {
+                        m.M2M_Book_Tag.c.book_id: self.book2_id,
+                        m.M2M_Book_Tag.c.tag_id: tag3_id,
+                    },
+                ]
+            )
+        )
+        resp = self.simulate_get("/v1/tag", query_string="sort=name")
+        self.assertEqual(resp.status, "200 OK", resp.text)
+        self.assertEqual(
+            len(resp.json["payload"]["tag"]), 4, json.dumps(resp.json, indent=4)
+        )
+        self.assertEqual(
+            set(resp.json["payload"]["tag"][2]["book_titles"]),
+            {"first", "second"},
+            json.dumps(resp.json, indent=4),
+        )
+        self.assertEqual(
+            set(resp.json["payload"]["tag"][0]["book_titles"]),
+            {"first"},
+            json.dumps(resp.json, indent=4),
+        )
+        self.assertEqual(
+            resp.json["payload"]["tag"][3]["book_titles"],
+            [],
+            json.dumps(resp.json, indent=4),
+        )
