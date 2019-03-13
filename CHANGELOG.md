@@ -4,7 +4,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
--
+- implementation of JSONAPI.org format
+
+## [0.3b11] - 2019-03-13
+### Added
+
+- ability to make list of joins in resource field 
+    
+    ```python 
+        book_titles = fields.List(
+        fields.Str(),
+        resource="author",
+        model_field=sa.func.array_remove(sa.func.array_agg(m.Book.title), None),
+        join=[
+            OuterJoin(
+                m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
+            ),
+            OuterJoin(
+                m.M2M_Book_Tag, m.Book, m.M2M_Book_Tag.c.book_id == m.Book.id
+            ),
+        ],
+    )
+    ```
+
 
 ## [0.3b10] - 2019-03-11
 ### Added

@@ -1,12 +1,9 @@
-from typing import List
-
 import sqlalchemy as sa
 from marshmallow import fields
 
 import tests.test_app.models as m
 from awokado import custom_fields
-from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE, OP_IN
-from awokado.filter_parser import OPERATORS_MAPPING, FilterItem
+from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE
 from awokado.utils import ReadContext, OuterJoin
 from tests.test_app.resources.base import Resource
 
@@ -25,9 +22,24 @@ class TagResource(Resource):
         fields.Int(),
         resource="book",
         model_field=m.M2M_Book_Tag.c.book_id,
-        join=OuterJoin(
-            m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
-        ),
+        # Join Tag with M2M_Book_Tag already made in book_titles field,
+        # no need to duplicate it here
+        # join=OuterJoin(
+        #     m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
+        # ),
+    )
+    book_titles = fields.List(
+        fields.Str(),
+        resource="author",
+        model_field=sa.func.array_remove(sa.func.array_agg(m.Book.title), None),
+        join=[
+            OuterJoin(
+                m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
+            ),
+            OuterJoin(
+                m.M2M_Book_Tag, m.Book, m.M2M_Book_Tag.c.book_id == m.Book.id
+            ),
+        ],
     )
 
     def get_by_book_ids(self, session, ctx: ReadContext, field: str = None):

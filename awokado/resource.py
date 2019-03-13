@@ -1,4 +1,5 @@
 import json
+from collections import Iterable
 from typing import Union
 
 import bulky
@@ -40,6 +41,7 @@ from awokado.utils import (
     ReadContext,
     has_resource_auth,
     cached_property,
+    OuterJoin,
 )
 
 
@@ -480,7 +482,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
             to_join = field.metadata.get("join")
             if to_join:
-                join_expressions.append(to_join)
+                if not isinstance(to_join, OuterJoin):
+                    join_expressions.extend(to_join)
+                else:
+                    join_expressions.append(to_join)
 
             if isinstance(field, ToMany):
                 fields_to_select[field_name] = sa.func.array_remove(

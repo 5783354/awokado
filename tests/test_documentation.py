@@ -44,5 +44,6 @@ class DocumentationTest(BaseAPITest):
                 "books",
                 "book",
                 "book_ids",
+                "book_titles",
             },
         )
