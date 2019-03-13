@@ -1,5 +1,4 @@
 import json
-from collections import Iterable
 from typing import Union
 
 import bulky
