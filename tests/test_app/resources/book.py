@@ -17,6 +17,9 @@ class BookResource(Resource):
         name = "book"
         methods = (CREATE, READ, UPDATE, BULK_UPDATE, DELETE)
         auth = None
+        select_from = sa.outerjoin(
+            m.Book, m.M2M_Book_Tag, m.Book.id == m.M2M_Book_Tag.c.book_id
+        )
 
     id = fields.Int(model_field=m.Book.id)
     title = fields.String(model_field=m.Book.title, required=True)
@@ -26,12 +29,7 @@ class BookResource(Resource):
     )
     store = custom_fields.ToOne(resource="store", model_field=m.Book.store_id)
     tags = custom_fields.ToMany(
-        fields.Int(),
-        resource="tag",
-        model_field=m.M2M_Book_Tag.c.tag_id,
-        join=OuterJoin(
-            m.Book, m.M2M_Book_Tag, m.Book.id == m.M2M_Book_Tag.c.book_id
-        ),
+        fields.Int(), resource="tag", model_field=m.M2M_Book_Tag.c.tag_id
     )
 
     def get_by_author_ids(

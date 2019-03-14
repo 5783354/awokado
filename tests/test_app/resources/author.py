@@ -16,13 +16,15 @@ class AuthorResource(Resource):
         name = "author"
         methods = (CREATE, READ, UPDATE, BULK_UPDATE, DELETE)
         auth = None
+        select_from = sa.outerjoin(
+            m.Author, m.Book, m.Author.id == m.Book.author_id
+        )
 
     id = fields.Int(model_field=m.Author.id)
     books = custom_fields.ToMany(
         fields.Int(),
         resource="book",
         model_field=m.Book.id,
-        join=OuterJoin(m.Author, m.Book, m.Author.id == m.Book.author_id),
         description="Authors Books",
     )
     books_count = fields.Int(

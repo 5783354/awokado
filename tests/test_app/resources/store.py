@@ -16,13 +16,13 @@ class StoreResource(Resource):
         name = "store"
         methods = (CREATE, BULK_CREATE, READ)
         auth = None
+        select_from = sa.outerjoin(
+            m.Store, m.Book, m.Store.id == m.Book.store_id
+        )
 
     id = fields.Int(model_field=m.Store.id)
     book_ids = custom_fields.ToMany(
-        fields.Int(),
-        resource="book",
-        model_field=m.Book.id,
-        join=OuterJoin(m.Store, m.Book, m.Store.id == m.Book.store_id),
+        fields.Int(), resource="book", model_field=m.Book.id
     )
     name = fields.String(model_field=m.Store.name, required=True)
 

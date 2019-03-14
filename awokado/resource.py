@@ -469,7 +469,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     def read__query(self, ctx):
         fields_to_select = {}
-        join_expressions = []
 
         for field_name, field in self.fields.items():
             model_field = field.metadata.get("model_field")
@@ -478,13 +477,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
                     f"{self.Meta.name}.{field_name} field must have "
                     f"'model_field' argument"
                 )
-
-            to_join = field.metadata.get("join")
-            if to_join:
-                if not isinstance(to_join, OuterJoin):
-                    join_expressions.extend(to_join)
-                else:
-                    join_expressions.append(to_join)
 
             if isinstance(field, ToMany):
                 fields_to_select[field_name] = sa.func.array_remove(
@@ -497,15 +489,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         q = sa.select([clm.label(lbl) for lbl, clm in fields_to_select.items()])
 
-        if join_expressions:
-            joins = sa.outerjoin(
-                join_expressions[0].left,
-                join_expressions[0].right,
-                join_expressions[0].onclause,
-            )
-            for _j in join_expressions[1:]:
-                joins = joins.outerjoin(_j.right, _j.onclause)
-
+        joins = getattr(self.Meta, "select_from", None)
+        if joins is not None:
             q = q.select_from(joins)
 
         if not ctx.is_list:
@@ -514,7 +499,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         if has_resource_auth(self):
             q = self.Meta.auth.can_read(ctx, q)
 
-        if join_expressions:
+        if joins is not None:
             q = q.group_by(self.Meta.model.id)
 
         ctx.q = q

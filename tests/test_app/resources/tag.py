@@ -15,31 +15,19 @@ class TagResource(Resource):
         methods = (CREATE, READ, UPDATE, BULK_UPDATE, DELETE)
         auth = None
         disable_total = True
+        select_from = sa.outerjoin(
+            m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
+        ).outerjoin(m.Book, m.M2M_Book_Tag.c.book_id == m.Book.id)
 
     id = fields.Int(model_field=m.Tag.id)
     name = fields.String(model_field=m.Tag.name)
     books = custom_fields.ToMany(
-        fields.Int(),
-        resource="book",
-        model_field=m.M2M_Book_Tag.c.book_id,
-        # Join Tag with M2M_Book_Tag already made in book_titles field,
-        # no need to duplicate it here
-        # join=OuterJoin(
-        #     m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
-        # ),
+        fields.Int(), resource="book", model_field=m.M2M_Book_Tag.c.book_id
     )
     book_titles = fields.List(
         fields.Str(),
         resource="author",
         model_field=sa.func.array_remove(sa.func.array_agg(m.Book.title), None),
-        join=[
-            OuterJoin(
-                m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
-            ),
-            OuterJoin(
-                m.M2M_Book_Tag, m.Book, m.M2M_Book_Tag.c.book_id == m.Book.id
-            ),
-        ],
     )
 
     def get_by_book_ids(self, session, ctx: ReadContext, field: str = None):
