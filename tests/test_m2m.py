@@ -1,6 +1,6 @@
-import sqlalchemy as sa
-
 from unittest.mock import patch
+
+import sqlalchemy as sa
 from falcon import status_codes as status
 
 from tests.base import BaseAPITest

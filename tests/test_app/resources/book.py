@@ -5,9 +5,7 @@ from marshmallow import fields
 
 import tests.test_app.models as m
 from awokado import custom_fields
-from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE, OP_IN
-from awokado.filter_parser import FilterItem, OPERATORS_MAPPING
-from awokado.utils import OuterJoin
+from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE
 from tests.test_app.resources.base import Resource
 
 

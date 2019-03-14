@@ -40,7 +40,6 @@ from awokado.utils import (
     ReadContext,
     has_resource_auth,
     cached_property,
-    OuterJoin,
 )
 
 

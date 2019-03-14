@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 from awokado.utils import cached_property
 
 
