@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - implementation of JSONAPI.org format
 
+## [0.3b12] - 2019-03-14
+### Added
+- `select_from` attribute in class Meta, allows you to specify `sqlalchemy.select_from()` arguments. Example: 
+
+```python
+class AuthorResource(Resource):
+    class Meta:
+        model = m.Author
+        name = "author"
+        methods = (CREATE, READ, UPDATE, BULK_UPDATE, DELETE)
+        auth = None
+        select_from = sa.outerjoin(
+            m.Author, m.Book, m.Author.id == m.Book.author_id
+        )
+``` 
+
+### Deprecated
+- `join` argument in the resource field 
+
 ## [0.3b11] - 2019-03-13
 ### Added
 

@@ -26,12 +26,6 @@ class AuthBundle(NamedTuple):
     auth_token: str
 
 
-class OuterJoin(NamedTuple):
-    left: object
-    right: object
-    onclause: bool
-
-
 def rand_string(size=8, chars=string.ascii_uppercase + string.digits):
     return "".join(random.choice(chars) for _ in range(size))
 
