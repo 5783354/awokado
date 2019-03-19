@@ -36,16 +36,3 @@ class Choice(fields.Str):
         super().__init__(
             *args, validate=validate.OneOf(allowed_values), **kwarg
         )
-
-
-class NotNullableList(fields.List):
-    def _serialize(self, value, attr, obj):
-        if value is None:
-            return []
-        if utils.is_collection(value):
-            return [
-                self.container._serialize(each, attr, obj)
-                for each in value
-                if each is not None
-            ]
-        return [self.container._serialize(value, attr, obj)]

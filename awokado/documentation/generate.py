@@ -8,7 +8,7 @@ from apispec.ext.marshmallow import MarshmallowPlugin
 from apispec.ext.marshmallow.openapi import DEFAULT_FIELD_MAPPING
 
 from awokado import custom_fields
-from awokado.consts import BULK_UPDATE
+from awokado.consts import BULK_UPDATE, BULK_CREATE
 from awokado.documentation.readme import get_readme
 from awokado.documentation.routes import collect_routes
 from awokado.documentation.utils import parse_doc_string
@@ -56,6 +56,7 @@ class APIDocs(object):
 
         if is_patch:
             is_bulk = BULK_UPDATE in r.resource.Meta.methods and not route_w_id
+
         if not route_w_id and is_patch and not is_bulk:
             log.info(
                 f"skip bulk patch with resource id "
@@ -111,8 +112,13 @@ class APIDocs(object):
             method_doc_str = r.method.__doc__
 
         summary, description = parse_doc_string(method_doc_str)
+
+        if r.method_name == "post" and BULK_CREATE in r.resource.Meta.methods:
+            summary += ". Supports bulk create"
+
         if description:
             description = description.replace("---", "")
+
         path_info = {
             r.route: {
                 r.method_name: {
