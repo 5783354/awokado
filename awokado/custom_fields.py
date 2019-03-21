@@ -1,11 +1,6 @@
 from marshmallow import fields, validate, utils
 
 
-class Relation(fields.Field):
-    def _serialize(self, value, attr, obj):
-        return value
-
-
 class ToMany(fields.List):
     def __init__(self, *args, **kwarg):
         related_resource_name = kwarg.get("resource")
