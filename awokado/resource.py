@@ -134,10 +134,11 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         self,
         req: falcon.request.Request,
         resp: falcon.response.Response,
-        resource_id: int = None,
+        *args,
+        **kwargs,
     ):
         """
-        Update
+        Bulk Update
         """
 
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
@@ -158,7 +159,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
                 f"Update: {self.Meta.name}", payload, user_id, AUDIT_DEBUG
             )
 
-            result = self.update(session, payload, user_id, resource_id)
+            result = self.update(session, payload, user_id)
 
         resp.body = json.dumps(result, default=str)
 
@@ -251,7 +252,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     ###########################################################################
 
     def update(
-        self, session, payload: dict, user_id: int, resource_id: int = None
+        self, session, payload: dict, user_id: int, *args, **kwargs
     ) -> dict:
         # prepare data for update
         data = payload[self.Meta.name]
