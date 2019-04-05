@@ -20,7 +20,7 @@ class BaseAuth:
     DELETE = {}
 
     @classmethod
-    def can_create(cls, session, user_id: int, skip_exc=False):
+    def can_create(cls, session, payload, user_id: int, skip_exc=False):
         if skip_exc:
             return False
         raise CreateResourceForbidden()

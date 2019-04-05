@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - implementation of JSONAPI.org format
 
+## [0.3b13] - 2019-04-02
+### Changed
+
+No backward compatibility. Need to change custom delete() and can_create() methods.
+- `delete` method supports bulk delete. 
+- add `payload` attribute to `can_create` method.
+
 ## [0.3b12] - 2019-03-14
 ### Added
 - `select_from` attribute in class Meta, allows you to specify `sqlalchemy.select_from()` arguments. Example: 

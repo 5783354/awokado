@@ -96,10 +96,31 @@ class BookTest(BaseAPITest):
 
         api_response = self.simulate_delete(f"/v1/book/{book_id}")
         self.assertEqual(api_response.status, "200 OK", api_response.json)
-
         self.assertDictEqual(api_response.json, dict())
 
-        api_response = self.simulate_delete(f"/v1/book")
-        self.assertEqual(
-            api_response.status, "403 Forbidden", api_response.json
+        author_id = self.create_author("Param Pam")
+        payload = {"book": {"title": "Man", "author": author_id}}
+        api_response = self.simulate_post("/v1/book", json=payload)
+        self.assertEqual(api_response.status, "200 OK", api_response.text)
+        book_id1 = api_response.json["book"][0]["id"]
+
+        payload = {"book": {"title": "Women", "author": author_id}}
+        api_response = self.simulate_post("/v1/book", json=payload)
+        self.assertEqual(api_response.status, "200 OK", api_response.text)
+        book_id2 = api_response.json["book"][0]["id"]
+
+        query = f"ids={book_id1},{book_id2}"
+
+        api_response = self.simulate_delete(
+            f"/v1/book/{book_id1}", query_string=query
         )
+        self.assertEqual(
+            api_response.status, "400 Bad Request", api_response.json
+        )
+
+        api_response = self.simulate_delete("/v1/book", query_string=query)
+        self.assertEqual(api_response.status, "200 OK", api_response.json)
+
+        api_response = self.simulate_get("/v1/book")
+        self.assertEqual(api_response.status, "200 OK", api_response.text)
+        self.assertEqual(len(api_response.json["payload"]["book"]), 0)

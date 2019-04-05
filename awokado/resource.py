@@ -24,7 +24,6 @@ from awokado.db import DATABASE_URL, persistent_engine
 from awokado.exceptions import (
     BadRequest,
     BadFilter,
-    DeleteResourceForbidden,
     MethodNotAllowed,
     RelationNotFound,
 )
@@ -179,7 +178,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             payload = req.stream
 
             if has_resource_auth(self):
-                self.Meta.auth.can_create(session, user_id, skip_exc=False)
+                self.Meta.auth.can_create(
+                    session, payload, user_id, skip_exc=False
+                )
 
             self.audit_log(
                 f"Create: {self.Meta.name}", payload, user_id, AUDIT_DEBUG
@@ -232,18 +233,27 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             session = t.session
             user_id, token = self.auth(session, req, resp)
 
-            if not resource_id:
-                raise DeleteResourceForbidden(
-                    details="Bulk deletion is forbidden"
-                )
-
             if DELETE not in self.Meta.methods:
                 raise MethodNotAllowed()
 
-            if has_resource_auth(self):
-                self.Meta.auth.can_delete(session, user_id, [resource_id])
+            ids_to_delete = req.get_param_as_list("ids")
 
-            result = self.delete(session, user_id, resource_id)
+            data = [ids_to_delete, resource_id]
+            if not any(data) or all(data):
+                raise BadRequest(
+                    details=(
+                        "It should be a bulk delete (?ids=1,2,3) or delete"
+                        " of a single resource (v1/resource/1)"
+                    )
+                )
+
+            if not ids_to_delete:
+                ids_to_delete = [resource_id]
+
+            if has_resource_auth(self):
+                self.Meta.auth.can_delete(session, user_id, ids_to_delete)
+
+            result = self.delete(session, user_id, ids_to_delete)
 
         resp.body = json.dumps(result, default=str)
 
@@ -327,9 +337,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         return result
 
-    def delete(self, session, user_id: int, resource_id: int):
+    def delete(self, session, user_id: int, obj_ids: list):
         session.execute(
-            sa.delete(self.Meta.model).where(self.Meta.model.id == resource_id)
+            sa.delete(self.Meta.model).where(self.Meta.model.id.in_(obj_ids))
         )
         return {}
 
