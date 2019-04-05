@@ -11,7 +11,6 @@ class Book(Model):
         sa.Integer,
         sa.ForeignKey("authors.id", onupdate="CASCADE", ondelete="SET NULL"),
         index=True,
-        unique=True,
     )
 
     description = sa.Column(sa.Text)

@@ -74,24 +74,35 @@ class ExceptionTest(BaseAPITest):
         self.assertEqual(resp.json["error"], "/ not found")
 
     @patch("awokado.resource.Transaction", autospec=True)
-    def test_Forbidden(self, session_patch):
+    def test_bad_request_delete(self, session_patch):
         """
-        403 Forbidden. Bulk deletion is forbidden
+        400 Bad Request. Incorrect delete
         """
         self.patch_session(session_patch)
         resp = self.simulate_delete("/v1/book/")
 
-        self.assertEqual(resp.status, "403 Forbidden", resp.text)
-        self.assertEqual(resp.status_code, 403, resp.text)
+        self.assertEqual(resp.status, "400 Bad Request", resp.text)
+        self.assertEqual(resp.status_code, 400, resp.text)
         self.assertEqual(
             resp.json,
             {
-                "status": "403 Forbidden",
-                "title": "403 Forbidden",
-                "code": "delete-forbidden",
-                "detail": "Bulk deletion is forbidden",
+                "status": "400 Bad Request",
+                "title": "400 Bad Request",
+                "code": "bad-request",
+                "detail": (
+                    "It should be a bulk delete (?ids=1,2,3) or delete"
+                    " of a single resource (v1/resource/1)"
+                ),
             },
         )
+
+        query = f"ids={self.book1_id},{self.book2_id}"
+        resp = self.simulate_delete(
+            f"/v1/book/{self.book1_id}", query_string=query
+        )
+
+        self.assertEqual(resp.status, "400 Bad Request", resp.text)
+        self.assertEqual(resp.status_code, 400, resp.text)
 
     @patch("awokado.resource.Transaction", autospec=True)
     def test_Method_Not_Allowed(self, session_patch):
