@@ -2,7 +2,7 @@ boto3
 bulky
 apispec
 jinja2
-falcon
+falcon==1.4.1
 marshmallow>=3.0.0rc3
 python-jose
 clavis

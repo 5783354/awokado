@@ -2,10 +2,10 @@ import functools
 from collections import namedtuple
 
 METHOD_MAPPING = {
-    "POST": "create",
-    "GET": "read",
-    "PATCH": "update",
-    "DELETE": "delete",
+    "POST": ("create", "bulk_create"),
+    "GET": ("read",),
+    "PATCH": ("update", "bulk_update"),
+    "DELETE": ("delete",),
 }
 
 
@@ -48,10 +48,8 @@ def collect_routes(falcon_app):
             continue
 
         for method_name, method in methods.items():
-            if (
-                not METHOD_MAPPING.get(method_name, None)
-                in resource.Meta.methods
-            ):
+            valid_methods = METHOD_MAPPING.get(method_name, [])
+            if not any(m in resource.Meta.methods for m in valid_methods):
                 continue
 
             if not isinstance(method, functools.partial):
