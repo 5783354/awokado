@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - implementation of JSONAPI.org format
 
+## [0.3b14] - 2019-05-15
+### Fixes
+
+- Fixed documentation generation for bulk operations
+
+
 ## [0.3b13] - 2019-04-02
 ### Changed
 

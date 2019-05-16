@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="awokado",
-    version="0.3b12",
+    version="0.3b14",
     description="Fast and flexible API framework based on Falcon and SQLAlchemy",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -36,7 +36,7 @@ setup(
         "bulky",
         "boto3",
         "dynaconf",
-        "falcon",
+        "falcon==1.4.1",
         "marshmallow>=3.0.0rc3",
         "pyaml",
         "PyJWT",
