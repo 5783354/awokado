@@ -33,7 +33,7 @@ class HttpMiddleware:
         origin2 = req.headers.get("ORIGIN")
         origin = origin2 or origin
 
-        if settings.AWOKADO_DEBUG:
+        if settings.get("AWOKADO_DEBUG"):
             resp.append_header(name="Access-Control-Allow-Origin", value=origin)
         else:
             if origin and origin in settings.ORIGIN_HOSTS:

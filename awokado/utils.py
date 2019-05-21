@@ -106,7 +106,7 @@ def json_error_serializer(
     origin = origin2 or origin
     headers = {}
 
-    if settings.AWOKADO_DEBUG:
+    if settings.get("AWOKADO_DEBUG"):
         headers["Access-Control-Allow-Origin"] = origin
     else:
         if origin and origin in settings.ORIGIN_HOSTS:
