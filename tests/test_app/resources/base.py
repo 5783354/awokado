@@ -7,9 +7,3 @@ class Resource(BaseResource):
         methods = tuple()
         auth = None
         skip_doc = True
-
-    def auth(self, *args, **kwargs):
-        return None, None
-
-    def audit_log(self, *args, **kwargs):
-        return

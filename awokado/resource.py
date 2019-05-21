@@ -1,5 +1,5 @@
 import json
-from typing import Union
+from typing import Union, Tuple
 
 import bulky
 import falcon
@@ -59,8 +59,6 @@ class ResourceMeta(SchemaMeta):
             raise Exception(f"{cls_name} must have Meta.methods")
         if not hasattr(res_meta, "name") or not res_meta.name:
             raise Exception(f"{cls_name} must have Meta.name")
-        if not hasattr(res_meta, "auth"):
-            raise Exception(f"{cls_name} must have Meta.auth")
 
         if not hasattr(res_meta, "disable_total"):
             res_meta.disable_total = False
@@ -151,7 +149,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             data = payload[self.Meta.name]
             ids = [d.get(self.Meta.model.id.key) for d in data]
 
-            if hasattr(self.Meta, "auth") and self.Meta.auth is not None:
+            if has_resource_auth(self):
                 self.Meta.auth.can_update(session, user_id, ids)
 
             self.audit_log(
@@ -190,11 +188,14 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         resp.body = json.dumps(result, default=str)
 
-    def auth(self, *args, **kwargs):
-        raise NotImplementedError("auth method not found")
+    def auth(self, *args, **kwargs) -> Tuple[int, str]:
+        """
+        this method should return (user_id, token) tuple
+        """
+        return None, None
 
     def audit_log(self, *args, **kwargs):
-        raise NotImplementedError("audit_log method not found")
+        return
 
     def on_get(
         self,
