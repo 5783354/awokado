@@ -249,7 +249,7 @@ def generate_documentation(
     )
 
     for resource_name, resource in BaseResource.RESOURCES.items():
-        if resource.Meta.auth is None:
+        if getattr(resource.Meta, "auth", None) is None:
             public_resources.add(resource_name)
 
         if hasattr(resource.Meta, "skip_doc") and resource.Meta.skip_doc:

@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Fixes
 
 - Fixed "load_only" fields appearing in read request results
+- Fixed “awokado_debug” setting being always required in settings
+- Added pre-commit hook to run black formatting checks
+- Fixed attribute “auth” being mandatory in resource.Meta
+- Fixed method “auth” being mandatory to overwrite in resource
+- Fixed method “audit_log” being mandatory to overwrite in resource
 
 ## [0.3b14] - 2019-05-15
 ### Fixes

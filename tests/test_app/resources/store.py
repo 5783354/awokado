@@ -13,7 +13,6 @@ class StoreResource(Resource):
         model = m.Store
         name = "store"
         methods = (CREATE, BULK_CREATE, READ)
-        auth = None
         select_from = sa.outerjoin(
             m.Store, m.Book, m.Store.id == m.Book.store_id
         )
