@@ -2,8 +2,9 @@ alembic
 apispec
 jinja2
 boto3
+bulky
 bcrypt
-falcon
+falcon==1.4.1
 ipython
 marshmallow>=3.0.0rc3
 psycopg2-binary

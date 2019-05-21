@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - implementation of JSONAPI.org format
 
+## [0.3b15] - 2019-05-21
+### Fixes
+
+- Fixed "load_only" fields appearing in read request results
+
 ## [0.3b14] - 2019-05-15
 ### Fixes
 

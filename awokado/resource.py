@@ -482,6 +482,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         for field_name, field in self.fields.items():
             model_field = field.metadata.get("model_field")
+            if field.load_only:
+                continue
+
             if model_field is None:
                 raise Exception(
                     f"{self.Meta.name}.{field_name} field must have "

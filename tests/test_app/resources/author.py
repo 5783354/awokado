@@ -35,8 +35,14 @@ class AuthorResource(Resource):
         ),
         dump_only=True,
     )
-    last_name = fields.String(model_field=m.Author.last_name, required=True)
-    first_name = fields.String(model_field=m.Author.first_name, required=True)
+    last_name = fields.String(
+        model_field=m.Author.last_name, required=True, load_only=True
+    )
+    first_name = fields.String(
+        model_field=m.Author.first_name, required=True, load_only=True
+    )
+
+    field_without_model_field = fields.String(load_only=True)
 
     def get_by_book_ids(
         self, session, user_id: int, obj_ids: List[int], field: sa.Column = None
