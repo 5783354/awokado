@@ -21,14 +21,7 @@ class AuthorTest(BaseAPITest):
         self.assertIsNotNone(id_)
         self.assertDictEqual(
             api_response.json["author"][0],
-            {
-                "id": id_,
-                "name": "Steven King",
-                "first_name": "Steven",
-                "last_name": "King",
-                "books_count": 0,
-                "books": [],
-            },
+            {"id": id_, "name": "Steven King", "books_count": 0, "books": []},
         )
 
     @patch("awokado.resource.Transaction", autospec=True)
@@ -53,8 +46,6 @@ class AuthorTest(BaseAPITest):
                 "name": "Steven King",
                 "books_count": 0,
                 "books": [],
-                "first_name": "Steven",
-                "last_name": "King",
             },
         )
 
@@ -68,3 +59,22 @@ class AuthorTest(BaseAPITest):
         self.assertEqual(api_response.status, "200 OK", api_response.json)
 
         self.assertDictEqual(api_response.json, dict())
+
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_read(self, session_patch):
+        self.patch_session(session_patch)
+
+        author_id = self.create_author("Steven X")
+
+        api_response = self.simulate_get("/v1/author/")
+        self.assertEqual(api_response.status, "200 OK", api_response.json)
+
+        self.assertDictEqual(
+            api_response.json["payload"]["author"][0],
+            {
+                "id": author_id,
+                "name": "Steven X",
+                "books_count": 0,
+                "books": [],
+            },
+        )
