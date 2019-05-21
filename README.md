@@ -122,6 +122,15 @@ To run tests locally you should create `.secrets.toml` file in the project root 
     DATABASE_DB='test'
 
 ```
+or
+
+```toml
+[default]
+    DATABASE_URL='your_full_db_url'
+
+```
+Do not use both ways at the same time, you will get error!
+
 Install required packages:
 
 `$ pip install -r requirements/requirements-dev.txt`
