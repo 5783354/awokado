@@ -39,7 +39,6 @@ setup(
         "falcon==1.4.1",
         "marshmallow>=3.0.0rc3",
         "pyaml",
-        "PyJWT",
         "clavis",
         "python-jose",
         "apispec",
