@@ -2,20 +2,24 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+## [0.3b15] - 2019-05-23
 
-- implementation of JSONAPI.org format
+### Added
 
-## [0.3b15] - 2019-05-21
+- Added pre-commit hook to run black formatting checks
+- Added ability to specify full database url in settings
+
 ### Fixes
 
 - Fixed "load_only" fields appearing in read request results
 - Fixed “awokado_debug” setting being always required in settings
-- Added pre-commit hook to run black formatting checks
 - Fixed attribute “auth” being mandatory in resource.Meta
 - Fixed method “auth” being mandatory to overwrite in resource
 - Fixed method “audit_log” being mandatory to overwrite in resource
-- Added ability to specify full database url in settings
+
+### Removed
+    
+- Functions `set_bearer_header`, `get_bearer_payload` and `AWOKADO_AUTH_BEARER_SECRET` var are removed 
 
 ## [0.3b14] - 2019-05-15
 ### Fixes

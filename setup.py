@@ -1,4 +1,3 @@
-import setuptools
 from setuptools import setup
 
 with open("README.md", "r") as fh:
@@ -6,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="awokado",
-    version="0.3b14",
+    version="0.3b15",
     description="Fast and flexible API framework based on Falcon and SQLAlchemy",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -40,7 +39,6 @@ setup(
         "marshmallow>=3.0.0rc3",
         "pyaml",
         "clavis",
-        "python-jose",
         "apispec",
         "jinja2",
         "SQLAlchemy>=1.3.0",
