@@ -10,7 +10,6 @@ marshmallow>=3.0.0rc3
 psycopg2-binary
 pudb
 pyaml
-python-jose
 clavis
 black
 dynaconf
