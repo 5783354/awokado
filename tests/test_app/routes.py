@@ -26,3 +26,8 @@ api.add_route("/v1/healthcheck/", HealthCheckResource())
 ###############################################################################
 ###############################################################################
 api.add_error_handler(Exception, api_exception_handler)
+
+# In falcon 1.4.1 this param was True by default, but in 2.0.0 (current)
+# they changed it to False, so now we need to manually set it to True
+# to utilize coma-separated value parsing in querystring.
+api.req_options.auto_parse_qs_csv = True

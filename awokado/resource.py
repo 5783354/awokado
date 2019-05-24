@@ -88,7 +88,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         is_bulk=False,
     ):
         methods = self.Meta.methods
-        payload = json.load(req.stream)
+        payload = json.load(req.bounded_stream)
 
         if isinstance(payload.get(self.Meta.name), list):
             request_method = BULK_CREATE
@@ -113,7 +113,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         if UPDATE not in methods and BULK_UPDATE not in methods:
             raise MethodNotAllowed()
 
-        payload = json.load(req.stream)
+        payload = json.load(req.bounded_stream)
         errors = self.validate(
             payload.get(self.Meta.name), partial=True, many=True
         )
