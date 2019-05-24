@@ -35,7 +35,7 @@ setup(
         "bulky",
         "boto3",
         "dynaconf",
-        "falcon==1.4.1",
+        "falcon==2.0.0",
         "marshmallow>=3.0.0rc3",
         "pyaml",
         "clavis",

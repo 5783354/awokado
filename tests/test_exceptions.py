@@ -64,7 +64,7 @@ class ExceptionTest(BaseAPITest):
         self.assertEqual(resp.status, "404 Not Found", resp.text)
         self.assertEqual(resp.status_code, 404, resp.text)
         self.assertEqual(
-            resp.json["error"], "/v1/wrong-resource-name not found"
+            resp.json["error"], "/v1/wrong-resource-name/ not found"
         )
 
         resp = self.simulate_get("/")

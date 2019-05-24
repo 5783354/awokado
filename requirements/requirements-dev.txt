@@ -4,7 +4,7 @@ jinja2
 boto3
 bulky
 bcrypt
-falcon==1.4.1
+falcon==2.0.0
 ipython
 marshmallow>=3.0.0rc3
 psycopg2-binary
