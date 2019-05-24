@@ -29,7 +29,7 @@ setup(
             {"api", "rest", "wsgi", "falcon", "sqlalchemy", "sqlalchemy-core"}
         )
     ),
-    packages=["awokado", "awokado.exceptions", "awokado.documentation"],
+    packages=["awokado", "awokado.documentation", "awokado.exceptions"],
     install_requires=(
         "bcrypt",
         "bulky",
