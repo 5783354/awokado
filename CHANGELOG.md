@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 Updated falcon from 1.4.1 to 2.0.0 ([Falcon 2 Changelog](https://falcon.readthedocs.io/en/latest/changes/2.0.0.html)), which led to following changes:
 - `application.req_options.auto_parse_qs_csv` param is now `False` by default, so you'll need to manually set it to `True`
+- `application.req_options.strip_url_path_trailing_slash ` param is now `False` by default, so you'll need to manually set it to `True`
 - For direct data read from request `req.bounded_stream` is now used instread of `req.stream`.
 
 ## [0.3b15] - 2019-05-23
