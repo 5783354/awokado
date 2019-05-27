@@ -45,5 +45,10 @@ class DocumentationTest(BaseAPITest):
                 "book",
                 "book_ids",
                 "book_titles",
+                "description: ID of related resource (store) Store selling book",
+                "/v1/forbidden_book/",
+                "$ref: '#/components/schemas/forbidden_book'",
+                "/v1/forbidden_book/{resource_id}",
+                "forbidden_book",
             },
         )

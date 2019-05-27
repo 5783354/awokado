@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import sqlalchemy as sa
 
+from awokado.exceptions import CreateResourceForbidden
 from tests.base import BaseAPITest
 from tests.test_app import models as m
 from tests.test_app.routes import api
@@ -164,3 +165,17 @@ class ExceptionTest(BaseAPITest):
             api_response.json["error"].startswith("Traceback"),
             api_response.text,
         )
+
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_base_exception_functionality(self, session_patch):
+        """
+        test base exception methods
+        """
+        exc = CreateResourceForbidden()
+
+        self.assertEqual(True, exc.has_representation())
+        self.assertEqual(f"{exc.status}. {exc.details}", str(exc))
+        self.assertEqual(f"{exc.status}. {exc.details}", repr(exc))
+
+        with self.assertRaises(Exception):
+            exc.handle(Exception, None, None, None)
