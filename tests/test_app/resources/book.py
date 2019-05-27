@@ -6,6 +6,7 @@ from marshmallow import fields
 import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE
+from awokado.utils import ReadContext
 from tests.test_app.resources.base import Resource
 
 
@@ -25,13 +26,17 @@ class BookResource(Resource):
     author = custom_fields.ToOne(
         resource="author", model_field=m.Book.author_id
     )
-    store = custom_fields.ToOne(resource="store", model_field=m.Book.store_id)
+    store = custom_fields.ToOne(
+        resource="store",
+        model_field=m.Book.store_id,
+        description="Store selling book",
+    )
     tags = custom_fields.ToMany(
         fields.Int(), resource="tag", model_field=m.M2M_Book_Tag.c.tag_id
     )
 
     def get_by_author_ids(
-        self, session, user_id: int, obj_ids: List[int], field: sa.Column = None
+        self, session, ctx: ReadContext, field: sa.Column = None
     ):
         authors = sa.func.array_remove(
             sa.func.array_agg(m.Author.id), None
@@ -49,7 +54,7 @@ class BookResource(Resource):
             .select_from(
                 sa.outerjoin(m.Book, m.Author, m.Author.id == m.Book.author_id)
             )
-            .where(m.Book.author_id.in_(obj_ids))
+            .where(m.Book.author_id.in_(ctx.obj_ids))
             .group_by(m.Book.id)
         )
         result = session.execute(q).fetchall()
@@ -57,7 +62,7 @@ class BookResource(Resource):
         return serialized_objs
 
     def get_by_tag_ids(
-        self, session, user_id: int, obj_ids: List[int], field: sa.Column = None
+        self, session, ctx: ReadContext, field: sa.Column = None
     ):
         q = (
             sa.select(
@@ -76,7 +81,7 @@ class BookResource(Resource):
                     m.M2M_Book_Tag.c.book_id == m.Book.id,
                 )
             )
-            .where(m.M2M_Book_Tag.c.tag_id.in_(obj_ids))
+            .where(m.M2M_Book_Tag.c.tag_id.in_(ctx.obj_ids))
         )
 
         result = session.execute(q).fetchall()

@@ -8,6 +8,10 @@ from awokado.utils import ReadContext
 from tests.test_app.resources.base import Resource
 
 
+STORE_OPEN = "open"
+STORE_CLOSED = "closed"
+
+
 class StoreResource(Resource):
     class Meta:
         model = m.Store
@@ -22,6 +26,11 @@ class StoreResource(Resource):
         fields.Int(), resource="book", model_field=m.Book.id
     )
     name = fields.String(model_field=m.Store.name, required=True)
+    status = custom_fields.Choice(
+        model_field=m.Store.status,
+        allowed_values=[STORE_OPEN, STORE_CLOSED],
+        allow_none=True,
+    )
 
     def get_by_book_ids(
         self, session, ctx: ReadContext, field: sa.Column = None

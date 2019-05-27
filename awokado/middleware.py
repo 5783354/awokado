@@ -123,7 +123,7 @@ def save_profiling_info_to_file(profile):
         f"- {rand_string()}.prof"
     )
     with open(key, "w") as f:
-        f.write(marshaled_stats.decode(encoding="utf-8"))
+        f.write(marshaled_stats)
 
 
 def upload_profiling_info_to_s3(profile):

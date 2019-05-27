@@ -9,3 +9,4 @@ class Store(Model):
     id = Model.PK()
 
     name = sa.Column(sa.Text)
+    status = sa.Column(sa.Text)
