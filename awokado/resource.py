@@ -6,6 +6,7 @@ import falcon
 import sqlalchemy as sa
 from clavis import Transaction
 from marshmallow import utils, Schema
+from marshmallow.exceptions import SCHEMA
 from marshmallow.fields import List
 from marshmallow.schema import SchemaMeta
 
@@ -99,7 +100,17 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         if request_method not in methods:
             raise MethodNotAllowed()
 
-        errors = self.validate(payload.get(self.Meta.name), many=is_bulk)
+        data = payload.get(self.Meta.name)
+
+        if not data:
+            raise BadRequest(
+                f"Invalid schema, resource name is missing at the top level. "
+                f"Your POST request has to look like: "
+                f'{{"{self.Meta.name}": [{{"field_name": "field_value"}}] '
+                f'or {{"field_name": "field_value"}} }}'
+            )
+
+        errors = self.validate(data, many=is_bulk)
 
         if errors:
             raise BadRequest(errors)

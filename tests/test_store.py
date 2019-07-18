@@ -33,6 +33,16 @@ class StoreTest(BaseAPITest):
         self.assertEqual(api_response.status, "200 OK", api_response.text)
 
     @patch("awokado.resource.Transaction", autospec=True)
+    def test_bad_schema(self, session_patch):
+        self.patch_session(session_patch)
+        payload = {"bad_name_store": [{"name": "bestbooks"}]}
+        api_response = self.simulate_post("/v1/store", json=payload)
+        self.assertEqual(
+            api_response.status, "400 Bad Request", api_response.text
+        )
+        self.assertTrue("Invalid schema" in api_response.text)
+
+    @patch("awokado.resource.Transaction", autospec=True)
     def test_update(self, session_patch):
         self.patch_session(session_patch)
         payload = {"store": [{"id": self.store_id, "name": "new name"}]}
