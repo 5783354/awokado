@@ -5,9 +5,11 @@ from awokado.utils import api_exception_handler
 from tests.test_app.resources.healthcheck import HealthCheckResource
 from .resources.author import AuthorResource
 from .resources.book import BookResource
+from .resources.store_stats import StoreStatsResource
 from .resources.forbidden_book import ForbiddenBookResource
 from .resources.store import StoreResource
 from .resources.tag import TagResource
+from .resources.tag_stats import TagStatsResource
 
 api = falcon.API(middleware=[HttpMiddleware()])
 
@@ -22,8 +24,12 @@ api.add_route("/v1/forbidden_book/", ForbiddenBookResource())
 api.add_route("/v1/forbidden_book/{resource_id}", ForbiddenBookResource())
 api.add_route("/v1/store/", StoreResource())
 api.add_route("/v1/store/{resource_id}", StoreResource())
+api.add_route("/v1/store_stats/", StoreStatsResource())
+api.add_route("/v1/store_stats/{resource_id}", StoreStatsResource())
 api.add_route("/v1/tag/", TagResource())
 api.add_route("/v1/tag/{resource_id}", TagResource())
+api.add_route("/v1/tag_stats/", TagStatsResource())
+api.add_route("/v1/tag_stats/{resource_id}", TagStatsResource())
 api.add_route("/v1/healthcheck/", HealthCheckResource())
 
 ###############################################################################

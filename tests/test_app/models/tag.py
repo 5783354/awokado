@@ -7,4 +7,4 @@ class Tag(Model):
     __tablename__ = "tags"
 
     id = Model.PK()
-    name = sa.Column(sa.Text)
+    name = sa.Column(sa.Text, unique=True, nullable=False)

@@ -6,7 +6,6 @@ import falcon
 import sqlalchemy as sa
 from clavis import Transaction
 from marshmallow import utils, Schema
-from marshmallow.exceptions import SCHEMA
 from marshmallow.fields import List
 from marshmallow.schema import SchemaMeta
 
@@ -40,6 +39,7 @@ from awokado.utils import (
     ReadContext,
     has_resource_auth,
     cached_property,
+    get_id_field,
 )
 
 
@@ -61,6 +61,19 @@ class ResourceMeta(SchemaMeta):
         if not hasattr(res_meta, "name") or not res_meta.name:
             raise Exception(f"{cls_name} must have Meta.name")
 
+        new_resource_obj = new_resource()
+        resource_id_name = get_id_field(
+            new_resource_obj, name_only=True, skip_exc=True
+        )
+        if resource_id_name:
+            resource_id_field = new_resource_obj.fields.get(resource_id_name)
+            resource_id_field = resource_id_field.metadata.get("model_field")
+            if not resource_id_field:
+                raise Exception(
+                    f"Resource's {cls_name} id field {resource_id_name}"
+                    f" must have model_field."
+                )
+
         if not hasattr(res_meta, "disable_total"):
             res_meta.disable_total = False
 
@@ -77,6 +90,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         auth = BaseAuth
         skip_doc = True
         disable_total = False
+        id_field = None
 
     ###########################################################################
     # Marshmallow validation methods
@@ -203,7 +217,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         """
         this method should return (user_id, token) tuple
         """
-        return None, None
+        return 0, ""
 
     def audit_log(self, *args, **kwargs):
         return
@@ -519,13 +533,15 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             q = q.select_from(joins)
 
         if not ctx.is_list:
-            q = q.where(self.Meta.model.id == ctx.resource_id)
+            model_id = get_id_field(self)
+            q = q.where(model_id == ctx.resource_id)
 
         if has_resource_auth(self):
             q = self.Meta.auth.can_read(ctx, q)
 
         if joins is not None:
-            q = q.group_by(self.Meta.model.id)
+            model_id = get_id_field(self)
+            q = q.group_by(model_id)
 
         ctx.q = q
 
@@ -561,11 +577,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         ctx: ReadContext, related_res, related_data: list
     ):
         if related_res.Meta.name in ctx.related_payload:
+            related_res_id_field = get_id_field(related_res, True)
             existing_record_ids = [
-                rec["id"] for rec in ctx.related_payload[related_res.Meta.name]
+                rec[related_res_id_field]
+                for rec in ctx.related_payload[related_res.Meta.name]
             ]
             for rec in related_data:
-                if rec["id"] not in existing_record_ids:
+                if rec[related_res_id_field] not in existing_record_ids:
                     ctx.related_payload[related_res.Meta.name].append(rec)
         else:
             ctx.related_payload[related_res.Meta.name] = related_data
@@ -591,7 +609,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         serialized_data = self.dump(result, many=True)
 
-        ctx.obj_ids.extend([_i["id"] for _i in serialized_data])
+        id_field = get_id_field(self, name_only=True)
+        ctx.obj_ids.extend([_i[id_field] for _i in serialized_data])
         ctx.parent_payload = serialized_data
 
         if serialized_data and not self.Meta.disable_total:

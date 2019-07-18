@@ -2,6 +2,13 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.3b17] - 2019-07-18
+
+### Added
+
+- Added ability to use any resource field as "id" field. Currently only for read logic. This field can be specified as `id_field` attribute of resource's `Meta` class
+- Added schema validation for POST requests with a friendly message about the exception
+
 ## [0.3b16] - 2019-05-24
 
 ### Changed

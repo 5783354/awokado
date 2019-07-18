@@ -15,7 +15,7 @@ from dynaconf import settings
 from sqlalchemy import desc, asc
 
 from awokado.consts import DEFAULT_ACCESS_CONTROL_HEADERS
-from awokado.exceptions import BaseApiException
+from awokado.exceptions import BaseApiException, IdFieldMissingError
 from awokado.filter_parser import parse_filters
 
 log = logging.getLogger("awokado")
@@ -239,3 +239,19 @@ class cached_property(property):
             value = self.func(obj)
             obj.__dict__[self.__name__] = value
         return value
+
+
+def get_id_field(resource, name_only=False, skip_exc=False):
+    resource_id_field = getattr(resource.Meta, "id_field", "id")
+    if resource_id_field not in resource.fields:
+        if skip_exc:
+            return False
+
+        raise IdFieldMissingError()
+
+    if name_only:
+        return resource_id_field
+
+    resource_id_field = resource.fields.get(resource_id_field)
+    resource_id_field = resource_id_field.metadata.get("model_field")
+    return resource_id_field
