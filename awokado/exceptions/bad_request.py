@@ -65,3 +65,10 @@ class MethodNotAllowed(BaseApiException):
             code=code,
             details=details,
         )
+
+
+class IdFieldMissingError(BadRequest):
+    def __init__(
+        self, details="Resource has no id field. This action is impossible."
+    ):
+        BadRequest.__init__(self, code="id-field-missing", details=details)

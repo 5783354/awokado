@@ -81,8 +81,8 @@ class ReadTest(BaseAPITest):
     def test_disable_total(self, session_patch):
         self.patch_session(session_patch)
         self.create_tag("Fantastic")
-        self.create_tag("Fantastic")
-        self.create_tag("Fantastic")
+        self.create_tag("Fantastic 2")
+        self.create_tag("Fantastic 3")
         tags = self.session.execute(
             sa.select([sa.func.count(m.Tag.id)])
         ).scalar()
