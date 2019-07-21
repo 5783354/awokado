@@ -6,11 +6,14 @@
 Welcome to awokado's documentation!
 ***********************************
 
+
+Fast and flexible low-level API framework based on Falcon, Marshmallow and SQLAlchemy Core
+API is close to OpenAPI 3.0 specification
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
-
 
 *Indices and tables*
 =====================
@@ -22,7 +25,12 @@ Welcome to awokado's documentation!
 awokado resource
 ------------------
 
+.. automodule:: awokado.resource
+    :members:
 
-awokado
-~~~~~~~
+
+.. image:: _static/img/awokado_diagram.png
+
+
+
 
