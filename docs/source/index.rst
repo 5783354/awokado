@@ -13,7 +13,7 @@ API is close to OpenAPI 3.0 specification
 
 .. toctree::
    :maxdepth: 3
-   :caption: First steps:
+   :caption: User Guide:
 
    installation
    quickstart

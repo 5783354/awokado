@@ -3,6 +3,8 @@ Quickstart
 
 `Install <installation.html>`_ awokado before it's too late.
 
+`Falcon <https://github.com/falconry/falcon>`_ , `Marshmallow <https://github.com/marshmallow-code/marshmallow/>`_ and `SQLAlchemy Core <https://docs.sqlalchemy.org/en/13/core/>`_ is also needed.
+
 
 Simple example
 ------------------
@@ -10,132 +12,122 @@ Simple example
 Awokado based on Falcon, so we use REST architectural style. That means we're talking about resources.
 Resources are simply all the things in your API or application that can be accessed by a URL.
 
-.. code-block:: python
-   :linenos:
+Resources are represented as classes inherited from awocado BaseResource,
+that gives an opportunity to use get, create, delete, update methods.
 
-   from typing import List
+In class Meta we declare different resource's options:
+    * name - used for two resources connection by relation
+    * madel - represents sqlalchemy model
+    * methods - tuple of methods you want to use
+    * disable_totals - set false, if you don't need to know returning objects amount in read-requests
+    * auth - awokado BaseAuth object for embedding authentication logic
+    * select_from - provide data source here if your resource use another's model fields(for example sa.outerjoin(FirstModel, SecondModel, FirstModel.id == SecondModel.first_model_id))
+    * skip_doc - set true if you don't need to add resource to documentation
 
-   import sqlalchemy as sa
-   from marshmallow import fields
-
-   import tests.test_app.models as m
-   from awokado import custom_fields
-   from awokado.consts import CREATE, READ, UPDATE
-   from awokado.utils import ReadContext
-   from awokado.resource import BaseResource
-
-   # resources are represented as classes inherited from awocado BaseResource,
-   # that gives an opportunity to use get, create, delete, update methods.
-   class BookResource(BaseResource):
-   # TODO: include some comments about marshmallow Schema class and aptions class Meta?
-    class Meta:
-        model = m.Book
-        name = "book"
-        methods = (CREATE, READ, UPDATE)
-        auth = None
-
-    id = fields.Int(model_field=m.Book.id)
-    title = fields.String(model_field=m.Book.title, required=True)
-    description = fields.String(model_field=m.Book.description)
-    #custom_fields to represent relationships
-    author = custom_fields.ToOne(
-        resource="author", model_field=m.Book.author_id
-    )
-
-    def get_by_author_ids(
-        self, session, ctx: ReadContext, field: sa.Column = None
-    ):
-        authors = sa.func.array_remove(
-            sa.func.array_agg(m.Author.id), None
-        ).label("authors")
-        q = (
-            sa.select(
-                [
-                    m.Book.id.label("id"),
-                    m.Book.title.label("title"),
-                    m.Book.description.label("description"),
-                    m.Book.store_id.label("store"),
-                    authors,
-                ]
-            )
-            .select_from(
-                sa.outerjoin(m.Book, m.Author, m.Author.id == m.Book.author_id)
-            )
-            .where(m.Book.author_id.in_(ctx.obj_ids))
-            .group_by(m.Book.id)
-        )
-        result = session.execute(q).fetchall()
-        serialized_objs = self.dump(result, many=True)
-        return serialized_objs
-
-
-   class AuthorResource(Resource):
-    class Meta:
-        model = m.Author
-        name = "author"
-        methods = (CREATE, READ, UPDATE)
-        auth = None
-        select_from = sa.outerjoin(
-            m.Author, m.Book, m.Author.id == m.Book.author_id
-        )
-
-    id = fields.Int(model_field=m.Author.id)
-    books = custom_fields.ToMany(
-        fields.Int(),
-        resource="book",
-        model_field=m.Book.id,
-        description="Authors Books",
-    )
-    books_count = fields.Int(
-        dump_only=True, model_field=sa.func.count(m.Book.id)
-    )
-    name = fields.String(
-        model_field=sa.func.concat(
-            m.Author.first_name, " ", m.Author.last_name
-        ),
-        dump_only=True,
-    )
-    last_name = fields.String(
-        model_field=m.Author.last_name, required=True, load_only=True
-    )
-    first_name = fields.String(
-        model_field=m.Author.first_name, required=True, load_only=True
-    )
-
-    field_without_model_field = fields.String(load_only=True)
-
-    def get_by_book_ids(
-        self, session, ctx: ReadContext, field: sa.Column = None
-    ):
-        books_count = self.fields.get("books_count").metadata["model_field"]
-        q = (
-            sa.select(
-                [
-                    m.Author.id.label("id"),
-                    self.fields.name.metadata["model_field"].label("name"),
-                    books_count.label("books_count"),
-                ]
-            )
-            .select_from(
-                sa.outerjoin(m.Author, m.Book, m.Author.id == m.Book.author_id)
-            )
-            .where(m.Book.id.in_(ctx.obj_ids))
-            .group_by(m.Author.id)
-        )
-        result = session.execute(q).fetchall()
-        serialized_objs = self.dump(result, many=True)
-        return serialized_objs
-
-
-Add routes, so resources can handle requests
 
 .. code-block:: python
    :linenos:
 
-   app = falcon.API()
-   api.add_route("/v1/author/", AuthorResource())
-   api.add_route("/v1/author/{resource_id}", AuthorResource())
-   api.add_route("/v1/book/", BookResource())
-   api.add_route("/v1/book/{resource_id}", BookResource())
+    from marshmallow import fields
+
+    import models as m
+    from awokado.consts import CREATE, READ, UPDATE, DELETE
+    from awokado.resource import BaseResource
+
+
+    class BookResource(BaseResource):
+        class Meta:
+            model = m.Book
+            name = "book"
+            methods = (CREATE, READ, UPDATE, DELETE)
+            auth = None
+
+        id = fields.Int(model_field=m.Book.id)
+        title = fields.String(model_field=m.Book.title, required=True)
+        description = fields.String(model_field=m.Book.description)
+
+
+In options in Meta class we pointed model that connected with resource:
+
+.. code-block:: python
+   :linenos:
+
+    import sqlalchemy as sa
+    from sqlalchemy.ext.declarative import declarative_base
+
+    Base = declarative_base()
+
+
+    class Book(Base):
+        __tablename__ = "books"
+
+        id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+        description = sa.Column(sa.Text)
+        title = sa.Column(sa.Text)
+
+Use sqlalchemy declarative_base for tables to be created after connecting to db:
+
+.. code-block:: python
+   :linenos:
+
+    from sqlalchemy import create_engine
+
+    from awokado.db import (
+        DATABASE_PASSWORD,
+        DATABASE_HOST,
+        DATABASE_USER,
+        DATABASE_PORT,
+        DATABASE_DB,
+        DATABASE_URL,
+    )
+    from quickstart.models import Base
+
+    DATABASE_URL_MAIN = "postgresql://{}:{}@{}:{}".format(
+        DATABASE_USER, DATABASE_PASSWORD, DATABASE_HOST, DATABASE_PORT
+    )
+
+    e = create_engine(DATABASE_URL_MAIN)
+    conn = e.connect()
+    conn.execute("commit")
+    conn.execute(f"drop database if exists {DATABASE_DB}")
+    conn.execute("commit")
+    conn.execute(f"create database {DATABASE_DB}")
+    conn.execute("commit")
+    conn.close()
+
+    e = create_engine(DATABASE_URL)
+    Base.metadata.create_all(e)
+
+Add routes, so resources can handle requests:
+
+.. code-block:: python
+   :linenos:
+
+    import falcon
+    from resources.book import BookResource
+    from awokado.middleware import HttpMiddleware
+
+    api = falcon.API(middleware=[HttpMiddleware()])
+
+    api.add_route("/v1/book/", BookResource())
+    api.add_route("/v1/book/{resource_id}", BookResource())
+
+Now we're ready to run the above example. You can use uwsgi server.
+
+.. code-block:: python
+   :linenos:
+
+    pip install uwsgi
+    uwsgi --http :8000 --wsgi-file routes.py --callable api
+
+Test it using curl in another terminal:
+
+.. code-block:: python
+   :linenos:
+
+   curl localhost:8000/v1/book
+
+   curl localhost:8000/v1/book --data-binary '{"book":{"title":"some_title","description":"some_description"}}' --compressed -v
+
 
 

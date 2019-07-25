@@ -61,8 +61,8 @@ html_theme_options = {
     "includehidden": True,
     "titles_only": False,
 }
-html_favicon = "_static/img/avocado-2.png"
-html_logo = "_static/img/avocado-2.png"
+html_favicon = "_static/img/avocado.png"
+html_logo = "_static/img/avocado.png"
 html_sidebars = {
     "**": [
         "globaltoc.html",
