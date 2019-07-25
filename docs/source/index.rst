@@ -8,7 +8,9 @@ Welcome to awokado's documentation!
 
 
 Fast and flexible low-level API framework based on `Falcon <https://github.com/falconry/falcon>`_ , `Marshmallow <https://github.com/marshmallow-code/marshmallow/>`_ and `SQLAlchemy Core <https://docs.sqlalchemy.org/en/13/core/>`_
-API is close to OpenAPI 3.0 specification
+API is close to OpenAPI 3.0 specification.
+
+Awokado uses `dynaconf <https://github.com/rochacbruno/dynaconf/>`_ for loading it settings.
 
 
 .. toctree::
