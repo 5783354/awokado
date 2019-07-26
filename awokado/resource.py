@@ -577,7 +577,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         ctx: ReadContext, related_res, related_data: list
     ):
         if related_res.Meta.name in ctx.related_payload:
-            related_res_id_field = get_id_field(related_res, True)
+            related_res = related_res()
+            related_res_id_field = get_id_field(related_res, name_only=True)
             existing_record_ids = [
                 rec[related_res_id_field]
                 for rec in ctx.related_payload[related_res.Meta.name]
