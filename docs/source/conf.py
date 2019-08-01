@@ -78,7 +78,3 @@ html_sidebars = {
 html_static_path = ["_static"]
 
 master_doc = "index"
-
-
-def setup(app):
-    import m2r
