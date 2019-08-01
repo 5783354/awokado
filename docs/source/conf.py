@@ -25,7 +25,6 @@ author = "Dmitry Karnei"
 # The full version, including alpha/beta/rc tags
 release = "0.3b17"
 
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -79,3 +78,7 @@ html_sidebars = {
 html_static_path = ["_static"]
 
 master_doc = "index"
+
+
+def setup(app):
+    import m2r
