@@ -6,20 +6,25 @@
 Welcome to awokado's documentation!
 ***********************************
 
+.. mdinclude:: widget.md
 
 Fast and flexible low-level API framework based on `Falcon <https://github.com/falconry/falcon>`_ , `Marshmallow <https://github.com/marshmallow-code/marshmallow/>`_ and `SQLAlchemy Core <https://docs.sqlalchemy.org/en/13/core/>`_
 API is close to OpenAPI 3.0 specification.
 
 Awokado uses `dynaconf <https://github.com/rochacbruno/dynaconf/>`_ for loading it settings.
-
+You can find all available variables in `settings.toml` file.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 5
    :caption: User Guide:
 
    installation
    quickstart
+   reference
+   relations
    diagram
+   readme
+   changelog
 
 Indices and tables
 =====================
