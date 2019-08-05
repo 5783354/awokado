@@ -42,7 +42,7 @@ setup(
         "apispec",
         "jinja2",
         "SQLAlchemy>=1.3.0",
-        "m2r"
+        "m2r",
     ),
     python_requires=">=3.6",
 )

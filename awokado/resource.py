@@ -70,6 +70,16 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     RESOURCES = {}
 
     class Meta:
+        """
+                :param name:  used for two resources connection by relation
+                :param model: represents sqlalchemy model or cte
+                :param methods:  tuple of methods you want to allow
+                :param auth: awokado BaseAuth class for embedding authentication logic
+                :param skip_doc:  set true if you don't need to add resource to documentation
+                :param disable_total: set false, if you don't need to know returning objects amount in read-requests
+                :param select_from: provide data source here if your resource use another's model fields (for example sa.outerjoin(FirstModel, SecondModel, FirstModel.id == SecondModel.first_model_id))
+        """
+
         name = "base_resource"
         methods = tuple()
         model = None

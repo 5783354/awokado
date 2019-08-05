@@ -23,7 +23,7 @@ You can find all available variables in `settings.toml` file.
    reference
    relations
    diagram
-   readme
+   features
    changelog
 
 Indices and tables

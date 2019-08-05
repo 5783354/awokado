@@ -119,7 +119,7 @@ Here we define another end of connection by the ToMany field.
         model_field=m.Author.first_name, required=True, load_only=True
     )
 
-So finally here are the functions where we add logic for getting connected entities.
+So finally here are the methods where we add logic for getting connected entities.
 
 .. code-block:: python
    :linenos:
@@ -163,7 +163,7 @@ So finally here are the functions where we add logic for getting connected entit
             sa.select(
                 [
                     m.Author.id.label("id"),
-                    self.fields.name.metadata["model_field"].label("name"),
+                    self.fields.get("name")..metadata["model_field"].label("name"),
                     books_count.label("books_count"),
                 ]
             )
@@ -192,10 +192,86 @@ Add routes, so resources can handle requests:
 
 Test it using curl in terminal:
 
-.. code-block::
+.. code-block:: python
    :linenos:
 
-   curl localhost:8000/v1/book?include=user | python -m json.tool
+      curl localhost:8000/v1/author --data-binary '{"author":{"last_name": "B","first_name": "Sier"}}' --compressed -v | python -m json.tool
 
-   curl localhost:8000/v1/user?include=book | python -m json.tool
+      {
+          "author": [
+              {
+                  "books": [],
+                  "books_count": 0,
+                  "id": 1,
+                  "name": "Sier B"
+              }
+          ]
+      }
+
+      curl localhost:8000/v1/book --data-binary '{"book":{"title":"some_title","description":"some_description", "author":"1"}}' --compressed -v | python -m json.tool
+
+      {
+          "book": [
+              {
+                  "author": 1,
+                  "description": "some_description",
+                  "id": 1,
+                  "title": "some_title"
+              }
+          ]
+      }
+
+      curl localhost:8000/v1/author?include=books | python -m json.tool
+
+      {
+          "meta": {
+              "total": 1
+          },
+          "payload": {
+              "author": [
+                  {
+                      "books": [
+                          1
+                      ],
+                      "books_count": 1,
+                      "id": 1,
+                      "name": "Sier B"
+                  }
+              ],
+              "book": [
+                  {
+                      "description": "some_description",
+                      "id": 1,
+                      "title": "some_title"
+                  }
+              ]
+          }
+      }
+
+      curl localhost:8000/v1/book?include=author | python -m json.tool
+
+      {
+          "meta": {
+              "total": 1
+          },
+          "payload": {
+              "author": [
+                  {
+                      "books_count": 1,
+                      "id": 1,
+                      "name": "Sier B"
+                  }
+              ],
+              "book": [
+                  {
+                      "author": 1,
+                      "description": "some_description",
+                      "id": 1,
+                      "title": "some_title"
+                  }
+              ]
+          }
+      }
+
+
 
