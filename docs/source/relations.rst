@@ -17,6 +17,8 @@ Firstly, we need models:
    #models.py
 
    import sqlalchemy as sa
+   from awokado.db import DATABASE_URL
+   from sqlalchemy import create_engine
    from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -26,7 +28,7 @@ Firstly, we need models:
    class Book(BaseModel):
        __tablename__ = "books"
 
-       id = Model.PK()
+       id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
        author_id = sa.Column(
            sa.Integer,
            sa.ForeignKey("authors.id", onupdate="CASCADE", ondelete="SET NULL"),
@@ -39,7 +41,7 @@ Firstly, we need models:
    class Author(BaseModel):
        __tablename__ = "authors"
 
-       id = Model.PK()
+       id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
        first_name = sa.Column(sa.Text, nullable=False)
        last_name = sa.Column(sa.Text, nullable=False)
 
@@ -60,13 +62,13 @@ field in Book model where Author unique identifier is stored.
    #resources.py
 
    import sqlalchemy as sa
+   from awokado import custom_fields
+   from awokado.consts import CREATE, READ, UPDATE
+   from awokado.resource import BaseResource
+   from awokado.utils import ReadContext
    from marshmallow import fields
 
    import models as m
-   from awokado import custom_fields
-   from awokado.consts import CREATE, READ, UPDATE
-   from awokado.utils import ReadContext
-   from awokado.resource import BaseResource
 
    class BookResource(BaseResource):
     class Meta:
@@ -138,7 +140,6 @@ So finally here are the methods where we add logic for getting connected entitie
                     m.Book.id.label("id"),
                     m.Book.title.label("title"),
                     m.Book.description.label("description"),
-                    m.Book.store_id.label("store"),
                     authors,
                 ]
             )
@@ -163,7 +164,9 @@ So finally here are the methods where we add logic for getting connected entitie
             sa.select(
                 [
                     m.Author.id.label("id"),
-                    self.fields.get("name")..metadata["model_field"].label("name"),
+                    self.fields.get("name")
+                    .metadata["model_field"]
+                    .label("name"),
                     books_count.label("books_count"),
                 ]
             )
