@@ -6,7 +6,7 @@
 Welcome to awokado's documentation!
 ***********************************
 
-.. mdinclude:: widget.md
+.. mdinclude:: _static/widget.md
 
 Fast and flexible low-level API framework based on `Falcon <https://github.com/falconry/falcon>`_ , `Marshmallow <https://github.com/marshmallow-code/marshmallow/>`_ and `SQLAlchemy Core <https://docs.sqlalchemy.org/en/13/core/>`_
 API is close to OpenAPI 3.0 specification.
@@ -24,6 +24,7 @@ You can find all available variables in `settings.toml` file.
    relations
    diagram
    features
+   documentation
    changelog
 
 Indices and tables

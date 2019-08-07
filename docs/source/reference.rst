@@ -2,8 +2,14 @@ Reference
 *********
 
 In class Meta we declare different resource's options.
-There are possibility for certain methods to write your own behavior.
+There is a possibility to write your own behavior for certain methods .
 
-.. automodule:: awokado.resource
+.. autoclass:: awokado.resource.BaseResource()
     :members:
+
+
+
+.. automodule:: awokado.auth
+    :members:
+
 

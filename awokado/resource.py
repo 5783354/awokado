@@ -74,10 +74,11 @@ class BaseResource(Schema, metaclass=ResourceMeta):
                 :param name:  used for two resources connection by relation
                 :param model: represents sqlalchemy model or cte
                 :param methods:  tuple of methods you want to allow
-                :param auth: awokado BaseAuth class for embedding authentication logic
-                :param skip_doc:  set true if you don't need to add resource to documentation
+                :param auth: awokado `BaseAuth <reference.html#awokado.auth.BaseAuth>`_  class for embedding authentication logic
+                :param skip_doc:  set true if you don't need to add the resource to documentation
                 :param disable_total: set false, if you don't need to know returning objects amount in read-requests
                 :param select_from: provide data source here if your resource use another's model fields (for example sa.outerjoin(FirstModel, SecondModel, FirstModel.id == SecondModel.first_model_id))
+
         """
 
         name = "base_resource"
@@ -144,10 +145,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         *args,
         **kwargs,
     ):
-        """
-        Bulk Update
-        """
-
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
             user_id, _ = self.auth(session, req, resp)
@@ -173,10 +170,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     def on_post(
         self, req: falcon.request.Request, resp: falcon.response.Response
     ):
-        """
-        Create
-        """
-
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
             user_id, token = self.auth(session, req, resp)
@@ -214,7 +207,11 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         resource_id: int = None,
     ):
         """
-        Read
+        Falcon method. GET-request entry point.
+
+        Here is a database transaction opening.
+        This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
+        Then read_handler method is run. It's responsible for the whole read workflow.
 
         :param req: falcon.request.Request
         :param resp: falcon.response.Response
@@ -236,9 +233,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         resp: falcon.response.Response,
         resource_id: int = None,
     ):
-        """
-        Delete
-        """
 
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
@@ -275,6 +269,16 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     def update(
         self, session, payload: dict, user_id: int, *args, **kwargs
     ) -> dict:
+        """
+
+        First of all, data is prepared for updating:
+        Marshmallow load method for data structure deserialization and then preparing data for SQLAlchemy update query.
+
+        Updates data with bulk_update_mappings sqlalchemy method. Saves many-to-many relationships.
+
+        Returns updated resources with the help of read_handler method.
+
+        """
         # prepare data for update
         data = payload[self.Meta.name]
 
@@ -296,6 +300,20 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         return result
 
     def create(self, session, payload: dict, user_id: int) -> dict:
+        """
+
+        Create method.
+
+        You can override it to add your logic.
+
+        First of all, data is prepared for creating:
+        Marshmallow load method for data structure deserialization and then preparing data for SQLAlchemy create a query.
+
+        Inserts data to the database (Uses bulky library if there is more than one entity to create). Saves many-to-many relationships.
+
+        Returns created resources with the help of read_handler method.
+
+        """
         # prepare data to insert
         data = payload[self.Meta.name]
 
@@ -349,6 +367,11 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         return result
 
     def delete(self, session, user_id: int, obj_ids: list):
+        """
+
+        Simply deletes objects with passed identifiers.
+
+        """
         session.execute(
             sa.delete(self.Meta.model).where(self.Meta.model.id.in_(obj_ids))
         )

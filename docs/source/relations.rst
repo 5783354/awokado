@@ -193,7 +193,10 @@ Add routes, so resources can handle requests:
    api.add_route("/v1/book/{resource_id}", BookResource())
 
 
-Test it using curl in terminal:
+Test it using curl in terminal.
+
+
+Create entities using following curl:
 
 .. code-block:: python
    :linenos:
@@ -223,6 +226,11 @@ Test it using curl in terminal:
               }
           ]
       }
+
+And then, with read request see what you've got:
+
+.. code-block:: python
+   :linenos:
 
       curl localhost:8000/v1/author?include=books | python -m json.tool
 

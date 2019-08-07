@@ -62,7 +62,7 @@ At this point, the database should be already created.
     e = create_engine(DATABASE_URL)
     Base.metadata.create_all(e)
 
-Resources are represented as classes inherited from awocado BaseResource,
+Resources are represented as classes inherited from awokado `BaseResource <reference.html#awokado.resource.BaseResource>`_,
 that gives an opportunity to use get, create, delete, update methods.
 
 .. code-block:: python
@@ -91,7 +91,7 @@ Add routes, so resources can handle requests:
 
 The final file version should look like `this one <https://gitlab.com/5783354/awokado/blob/generate_documentation/docs/source/_static/examples/books.py>`_.
 
-Now we're ready to run the above example. You can use the uwsgi server.
+Now we're ready to run the above example. You can use the `uwsgi <https://uwsgi-docs.readthedocs.io/en/latest/>`_ server.
 
 .. code-block:: python
    :linenos:
@@ -99,7 +99,10 @@ Now we're ready to run the above example. You can use the uwsgi server.
     pip install uwsgi
     uwsgi --http :8000 --wsgi-file books.py --callable api
 
-Test it using curl in another terminal:
+Test it using curl in another terminal.
+
+
+Create entity using following curl:
 
 .. code-block:: python
    :linenos:
@@ -115,6 +118,11 @@ Test it using curl in another terminal:
             }
         ]
     }
+
+And then, with read request see what you've got:
+
+.. code-block:: python
+   :linenos:
 
    curl localhost:8000/v1/book | python -m json.tool
 
