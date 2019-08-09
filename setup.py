@@ -1,11 +1,17 @@
+import imp
+from os import path
+
 from setuptools import setup
+
+VERSION = imp.load_source("version", path.join(".", "awokado", "version.py"))
+VERSION = VERSION.__version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
     name="awokado",
-    version="0.3b16",
+    version=VERSION,
     description="Fast and flexible API framework based on Falcon and SQLAlchemy",
     long_description=long_description,
     long_description_content_type="text/markdown",
