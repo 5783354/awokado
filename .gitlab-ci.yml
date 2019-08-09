@@ -36,6 +36,6 @@ build:
   - twine upload --repository-url https://test.pypi.org/legacy/ --skip-existing dist/* -u $PYPI_USER -p $PYPI_PASSWORD
   - git config user.email "kseniya.borokhovskaya@upsilonit.com"
   - git tag -am 'Release v0.3b18' 0.3b18
-  - git push upstream 0.3b18
+  - git push origin 0.3b18
 
 
