@@ -35,6 +35,8 @@ build:
   - python3 setup.py sdist bdist_wheel
   - twine upload --repository-url https://test.pypi.org/legacy/ --skip-existing dist/* -u $PYPI_USER -p $PYPI_PASSWORD
   - git config --global user.email $NPA_EMAIL
+  - git config --global user.name $NPA_USER
+  - git config --global user.password $NPA_PASSWORD
   - git tag -am 'Release v0.3b18' 0.3b18
   - git push origin 0.3b18
 
