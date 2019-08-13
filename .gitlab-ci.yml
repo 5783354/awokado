@@ -37,7 +37,9 @@ build:
   - git config --global user.email $NPA_EMAIL
   - git config --global user.name $NPA_USER
   - git config --global user.password $NPA_PASSWORD
+  - git status
   - git tag -am 'Release v0.3b18' 0.3b18
+  - git status
   - git push origin 0.3b18
 
 
