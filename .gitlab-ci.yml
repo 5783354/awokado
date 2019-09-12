@@ -36,7 +36,7 @@ build:
 
   script:
   - python3 setup.py sdist bdist_wheel
-  - twine upload -dist/* -u $PYPI_USER -p $PYPI_PASSWORD
+  - twine upload dist/* -u $PYPI_USER -p $PYPI_PASSWORD
   - git remote set-url origin https://$NPA_USER:$NPA_PASSWORD@gitlab.com/5783354/awokado.git
   - git tag | egrep -q $(python awokado/version.py) || (git tag -am "Release $(python awokado/version.py)" $(python awokado/version.py) && git push origin $(python awokado/version.py))
 
