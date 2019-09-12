@@ -1,5 +1,6 @@
 stages:
 - test
+- build
 
 tests:
   image: python:3.6
@@ -20,3 +21,24 @@ tests:
   - black -l 80 --check --diff ./
   - coverage run --source=awokado -m unittest discover
   - coverage report -m
+
+build:
+  image: python:3.7
+  stage: build
+  only:
+  - master
+
+  before_script:
+    - pip install twine
+    - git config --global user.email $NPA_EMAIL
+    - git config --global user.name $NPA_USER
+    - git config --global user.password $NPA_PASSWORD
+
+  script:
+  - python3 setup.py sdist bdist_wheel
+  - twine upload -dist/* -u $PYPI_USER -p $PYPI_PASSWORD
+  - git remote set-url origin https://$NPA_USER:$NPA_PASSWORD@gitlab.com/5783354/awokado.git
+  - git tag | egrep -q $(python awokado/version.py) || (git tag -am "Release $(python awokado/version.py)" $(python awokado/version.py) && git push origin $(python awokado/version.py))
+
+
+
