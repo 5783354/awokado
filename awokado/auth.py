@@ -9,6 +9,20 @@ from awokado.exceptions import (
 
 
 class BaseAuth:
+    """
+    CREATE = {
+    'ROLE NAME HERE': Boolean value
+    }
+            Example:
+            'ADMIN': True,
+            'GUEST': False
+
+    READ,
+    UPDATE,
+    DELETE
+
+    """
+
     CREATE = {
         # 'ROLE NAME HERE': Boolean value,
         #  Example:
