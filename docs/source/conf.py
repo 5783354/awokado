@@ -15,7 +15,10 @@ import sys
 import imp
 from os import path
 
-VERSION = imp.load_source("version", path.join(".", "awokado", "version.py"))
+
+VERSION = imp.load_source(
+    "version", path.join("../..", "awokado", "version.py")
+)
 VERSION = VERSION.__version__
 
 sys.path.insert(0, os.path.abspath("../.."))
