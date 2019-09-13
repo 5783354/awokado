@@ -1,9 +1,13 @@
-import imp
+from importlib.machinery import SourceFileLoader
 from os import path
 
 from setuptools import setup
 
-VERSION = imp.load_source("version", path.join(".", "awokado", "version.py"))
+
+VERSION = SourceFileLoader(
+    "version", path.join(".", "awokado", "version.py")
+).load_module()
+
 VERSION = VERSION.__version__
 
 with open("README.md", "r") as fh:

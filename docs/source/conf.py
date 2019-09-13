@@ -12,13 +12,12 @@
 #
 import os
 import sys
-import imp
+from importlib.machinery import SourceFileLoader
 from os import path
 
-
-VERSION = imp.load_source(
+VERSION = SourceFileLoader(
     "version", path.join("../..", "awokado", "version.py")
-)
+).load_module()
 VERSION = VERSION.__version__
 
 sys.path.insert(0, os.path.abspath("../.."))
