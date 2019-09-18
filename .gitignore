@@ -93,3 +93,4 @@ tags
 .idea
 .env
 .secrets.*
+.mypy_cache

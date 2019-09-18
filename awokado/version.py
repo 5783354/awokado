@@ -1,6 +1,6 @@
 """Awokado version."""
 
-__version__ = "0.3b19"
+__version__ = "0.4b1"
 """Current version of Awokado."""
 
 

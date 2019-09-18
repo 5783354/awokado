@@ -1,3 +1,5 @@
+from typing import Dict
+
 from sqlalchemy.sql import Selectable
 
 from awokado.exceptions import (
@@ -23,15 +25,15 @@ class BaseAuth:
 
     """
 
-    CREATE = {
+    CREATE: Dict[str, bool] = {
         # 'ROLE NAME HERE': Boolean value,
         #  Example:
         # 'ADMIN': True,
         # 'GUEST': False,
     }
-    READ = {}
-    UPDATE = {}
-    DELETE = {}
+    READ: Dict[str, bool] = {}
+    UPDATE: Dict[str, bool] = {}
+    DELETE: Dict[str, bool] = {}
 
     @classmethod
     def can_create(cls, session, payload, user_id: int, skip_exc=False):

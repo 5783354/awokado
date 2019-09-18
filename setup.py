@@ -49,7 +49,7 @@ setup(
         "marshmallow>=3.0.0rc3",
         "pyaml",
         "clavis",
-        "apispec",
+        "apispec==2.0.1",
         "jinja2",
         "SQLAlchemy>=1.3.0",
         "m2r",

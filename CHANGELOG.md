@@ -2,6 +2,23 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.4b1] - 2019-09-18
+
+### Added
+
+- [pipenv](https://docs.pipenv.org) implemented.
+- [mypy](http://mypy-lang.org) implemented.
+- `awokado.response.Response` class added. [Read more](https://awokado.readthedocs.io/en/latest/reference.html#awokado.response.Response)
+- method `awokado.resource.BaseResource.read__serializing` now uses `awokado.response.Response` class to serialize data. Take a look at the [code](https://gitlab.com/5783354/awokado/blob/master/awokado/resource.py#L655) if you already override this method
+
+### Changed
+
+- `awokado.utils.ReadContext` moved to `awokado.request.ReadContext`
+
+### Removed
+
+- `awokado.utils.empty_response` function removed (use `awokado.response.Response` instead)
+
 ## [0.3b19] - 2019-08-28
 
 ### Added

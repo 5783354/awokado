@@ -8,14 +8,14 @@ import sys
 import traceback
 import uuid
 from json import JSONDecodeError
-from typing import NamedTuple, Optional
+from typing import NamedTuple, List, Dict, Any
 
 import falcon
 from dynaconf import settings
 from sqlalchemy import desc, asc
 
 from awokado.consts import DEFAULT_ACCESS_CONTROL_HEADERS
-from awokado.exceptions import BaseApiException, IdFieldMissingError
+from awokado.exceptions import BaseApiException, IdFieldMissingError, BadRequest
 from awokado.filter_parser import parse_filters
 
 log = logging.getLogger("awokado")
@@ -173,46 +173,6 @@ def api_exception_handler(error, req, resp, params):
         resp.append_header("Vary", "Accept")
 
 
-class ReadContext:
-    def __init__(
-        self,
-        session,
-        resource,
-        user_id: int,
-        include: list,
-        filters: Optional[dict],
-        sort: Optional[list],
-        resource_id: Optional[int],
-        limit: Optional[int],
-        offset: Optional[int],
-    ):
-        self.resource = resource
-        self.uid = user_id
-        self.session = session
-
-        # runtime vars
-        self.q = None
-        self.obj_ids = []
-        self.parent_payload = {}
-        self.related_payload = {}
-        self.total = None
-
-        # for Aggregation Resources
-        self.time_scale = None
-
-        # request vars
-        self.limit = limit
-        self.offset = offset
-        self.sort = sort
-        self.query = filters
-        self.include = include
-        self.resource_id = resource_id
-
-    @property
-    def is_list(self):
-        return not bool(self.resource_id)
-
-
 def get_uuid_hash(string):
     return hashlib.md5(
         (
@@ -255,3 +215,12 @@ def get_id_field(resource, name_only=False, skip_exc=False):
     resource_id_field = resource.fields.get(resource_id_field)
     resource_id_field = resource_id_field.metadata.get("model_field")
     return resource_id_field
+
+
+def get_ids_from_payload(model: Any, payload: List[Dict]) -> List:
+    if model and hasattr(model, "id"):
+        ids = [d.get(model.id.key) for d in payload]
+    else:
+        raise BadRequest("Model's ID field doesn't specified")
+
+    return ids

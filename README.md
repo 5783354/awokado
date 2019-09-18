@@ -1,4 +1,5 @@
-[![pipeline status](https://gitlab.com/5783354/awokado/badges/master/pipeline.svg)](https://gitlab.com/5783354/awokado/commits/master)[![coverage report](https://gitlab.com/5783354/awokado/badges/master/coverage.svg)](https://gitlab.com/5783354/awokado/commits/master)[![Codacy Badge](https://api.codacy.com/project/badge/Grade/349840fc0f144baba98aa04ad19bc10a)](https://www.codacy.com/app/5783354/awokado?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=5783354/awokado&amp;utm_campaign=Badge_Grade)[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)[![PyPI - Downloads](https://img.shields.io/pypi/dm/awokado.svg?style=popout)](https://pypi.org/project/awokado/)
+[![pipeline status](https://gitlab.com/5783354/awokado/badges/master/pipeline.svg)](https://gitlab.com/5783354/awokado/commits/master)[![coverage report](https://gitlab.com/5783354/awokado/badges/master/coverage.svg)](https://gitlab.com/5783354/awokado/commits/master)[![Codacy Badge](https://api.codacy.com/project/badge/Grade/349840fc0f144baba98aa04ad19bc10a)](https://www.codacy.com/app/5783354/awokado?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=5783354/awokado&amp;utm_campaign=Badge_Grade)[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)[![PyPI - Downloads](https://img.shields.io/pypi/dm/awokado.svg?style=popout)](https://pypi.org/project/awokado/)[![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)![PyPI](https://img.shields.io/pypi/v/awokado)
+
 
 Fast and flexible low-level API framework based on [Falcon](https://github.com/falconry/falcon), [Marshmallow](https://github.com/marshmallow-code/marshmallow/) and [SQLAlchemy Core](https://docs.sqlalchemy.org/en/latest/core/)
 
@@ -18,6 +19,10 @@ You can find in: [CHANGELOG.md](https://gitlab.com/5783354/awokado/blob/master/C
 
 # Installation
 
+```sh
+$ pipenv install awokado
+```
+or
 ```sh
 $ pip install awokado
 ```
@@ -52,15 +57,15 @@ Do not use both ways at the same time, you will get error!
 
 Install required packages:
 
-`$ pip install -r requirements/requirements-dev.txt`
+`$ pipenv install --dev`
 
 Then you can setup your database: 
 
-`$ python -m tests.test_app.init_db`
+`$ pipenv python -m tests.test_app.init_db`
 
 And run tests:
 
-`$ python -m unittest`
+`$ pipenv python -m unittest`
 
 
 # Authors

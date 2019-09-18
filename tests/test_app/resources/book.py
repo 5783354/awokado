@@ -6,7 +6,7 @@ from marshmallow import fields
 import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE
-from awokado.utils import ReadContext
+from awokado.request import ReadContext
 from tests.test_app.resources.base import Resource
 
 

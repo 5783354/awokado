@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import sqlalchemy as sa
 
+from awokado.response import Response
 from tests.base import BaseAPITest
 from tests.test_app import models as m
 from tests.test_app.routes import api
@@ -44,6 +45,20 @@ class ReadTest(BaseAPITest):
         self.assertEqual(resp.status, "200 OK", resp.text)
         self.assertEqual(len(resp.json["book"]), 1)
         self.assertEqual(resp.json["book"][0]["id"], self.book1_id)
+
+    @patch("awokado.resource.Transaction", autospec=True)
+    def test_read_empty_list(self, session_patch):
+        self.patch_session(session_patch)
+        resp = self.simulate_get(f"/v1/author/")
+
+        self.assertEqual(resp.status, "200 OK", resp.text)
+        self.assertDictEqual(
+            resp.json,
+            {
+                Response.PAYLOAD_KEYWORD: {"author": []},
+                Response.META_KEYWORD: {Response.TOTAL_KEYWORD: 0},
+            },
+        )
 
     @patch("awokado.resource.Transaction", autospec=True)
     def test_read(self, session_patch):

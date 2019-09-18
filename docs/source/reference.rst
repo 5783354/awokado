@@ -12,4 +12,6 @@ There is a possibility to write your own behavior for certain methods .
 .. automodule:: awokado.auth
     :members:
 
-
+.. autoclass:: awokado.response.Response()
+   :members:
+   :undoc-members:
