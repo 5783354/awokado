@@ -60,4 +60,7 @@ class IncludeTest(BaseAPITest):
         )
 
         self.assertEqual(resp.status, "200 OK", resp.text)
-        self.assertEqual(len(resp.json["payload"]["book"]), 0)
+
+        self.assertEqual(
+            len((resp.json or {}).get("payload", {}).get("book")), 0
+        )

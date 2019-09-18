@@ -1,5 +1,5 @@
 import json
-from typing import Union, Tuple
+from typing import Union, Tuple, Dict, Any, List as ListType, Optional
 
 import bulky
 import falcon
@@ -32,14 +32,15 @@ from awokado.filter_parser import (
     FilterItem,
     OPERATORS_MAPPING,
 )
+from awokado.request import ReadContext
+from awokado.response import Response
 from awokado.utils import (
     get_sort_way,
-    empty_response,
     get_read_params,
-    ReadContext,
     has_resource_auth,
     cached_property,
     get_id_field,
+    get_ids_from_payload,
 )
 
 
@@ -81,7 +82,8 @@ class ResourceMeta(SchemaMeta):
 
 
 class BaseResource(Schema, metaclass=ResourceMeta):
-    RESOURCES = {}
+    RESOURCES: Dict[str, "BaseResource"] = {}
+    Response = Response
 
     class Meta:
         """
@@ -96,8 +98,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         """
 
         name = "base_resource"
-        methods = tuple()
-        model = None
+        methods: Union[Tuple[str], Tuple] = tuple()
+        model: Any = None  # type: ignore
         auth = BaseAuth
         skip_doc = True
         disable_total = False
@@ -189,7 +191,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             payload = req.stream
 
             data = payload[self.Meta.name]
-            ids = [d.get(self.Meta.model.id.key) for d in data]
+
+            ids = get_ids_from_payload(self.Meta.model, data)
 
             if has_resource_auth(self):
                 self.Meta.auth.can_update(session, user_id, ids)
@@ -265,10 +268,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             session = t.session
             user_id, token = self.auth(session, req, resp)
             params = get_read_params(req, self.__class__)
+            params["resource_id"] = resource_id
 
-            result = self.read_handler(
-                session, user_id, **params, resource_id=resource_id
-            )
+            result = self.read_handler(session, user_id, **params)
 
         resp.body = json.dumps(result, default=str)
 
@@ -323,7 +325,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     def update(
         self, session, payload: dict, user_id: int, *args, **kwargs
-    ) -> dict:
+    ) -> Dict:
         """
 
         First of all, data is prepared for updating:
@@ -332,15 +334,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Updates data with bulk_update_mappings sqlalchemy method. Saves many-to-many relationships.
 
         Returns updated resources with the help of read_handler method.
-
         """
-        # prepare data for update
         data = payload[self.Meta.name]
 
-        result = self.load(data, many=True, partial=True)
-        data_to_update = self._to_update(result)
+        raw_result = self.load(data, many=True, partial=True)
+        data_to_update = self._to_update(raw_result)
 
-        ids = [_i.get(self.Meta.model.id.key) for _i in data_to_update]
+        ids = get_ids_from_payload(self.Meta.model, data_to_update)
 
         session.bulk_update_mappings(self.Meta.model, data_to_update)
         self._save_m2m(session, data, update=True)
@@ -397,10 +397,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         return result
 
     def bulk_create(self, session, user_id: int, data: list) -> dict:
-        result = self.load(data, many=True)
+        raw_result = self.load(data, many=True)
 
         data_to_insert = []
-        for item in result:
+        for item in raw_result:
             data_to_insert.append(self._to_create(item))
 
         # insert to DB
@@ -471,12 +471,12 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         session,
         user_id: int,
         include: list = None,
-        filters: [FilterItem] = None,
+        filters: Optional[ListType[FilterItem]] = None,
         sort: list = None,
         resource_id: int = None,
         limit: int = None,
         offset: int = None,
-    ) -> dict:
+    ) -> Dict:
 
         ctx = ReadContext(
             session,
@@ -499,7 +499,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         if not ctx.obj_ids:
             if ctx.is_list:
-                return empty_response(self, ctx.is_list)
+                response = self.Response(self, is_list=ctx.is_list)
+                return response.serialize()
             else:
                 raise BadRequest("Object Not Found")
 
@@ -652,18 +653,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         else:
             ctx.related_payload[related_res.Meta.name] = related_data
 
-    def read__serializing(self, ctx: ReadContext):
-        response = {self.Meta.name: ctx.parent_payload}
-
-        response.update(ctx.related_payload)
-
-        if ctx.is_list:
-            response = {"payload": response, "meta": None}
-
-            if not self.Meta.disable_total:
-                response["meta"] = {"total": ctx.total or 0}
-
-        return response
+    def read__serializing(self, ctx: ReadContext) -> Dict:
+        response = self.Response(self, ctx.is_list)
+        response.set_parent_payload(ctx.parent_payload)
+        response.set_related_payload(ctx.related_payload)
+        response.set_total(ctx.total)
+        serialized_response = response.serialize()
+        return serialized_response
 
     def read__execute_query(self, session, ctx: ReadContext):
         if not self.Meta.disable_total:
@@ -735,7 +731,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             )
             raise BadRequest({field_name: err_msg})
 
-    def _save_m2m(self, session, data: Union[list, dict], update: bool = False):
+    def _save_m2m(
+        self, session, data: Union[list, dict], update: bool = False
+    ) -> None:
         data = data if utils.is_collection(data) else [data]
 
         for field_name, field in self._to_many_fields:

@@ -96,7 +96,7 @@ Now we're ready to run the above example. You can use the `uwsgi <https://uwsgi-
 .. code-block:: python
    :linenos:
 
-    pip install uwsgi
+    pipenv install uwsgi
     uwsgi --http :8000 --wsgi-file books.py --callable api
 
 Test it using curl in another terminal.
