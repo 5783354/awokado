@@ -8,6 +8,8 @@ from awokado.consts import (
     OP_IN,
     OP_EMPTY,
     OP_CONTAINS,
+    OP_LT,
+    OP_GT,
 )
 from awokado.exceptions.bad_request import BadFilter
 from awokado.filter_parser import (
@@ -93,6 +95,28 @@ class FilterParserTest(TestCase):
                     f"last_name[{OP_IN}]": ["name1", "name2"],
                     f"first_name[{OP_EMPTY}]": "false",
                 },
+                AuthorResource,
+            ),
+        )
+
+        self.assertFilterItems(
+            [
+                FilterItem("id", "__gt__", lambda v: v, "2"),
+                FilterItem("last_name", OP_CONTAINS, lambda v: v, ["name"]),
+            ],
+            parse_filters(
+                {f"id[{OP_GT}]": "2", f"last_name[{OP_CONTAINS}]": "name"},
+                AuthorResource,
+            ),
+        )
+
+        self.assertFilterItems(
+            [
+                FilterItem("id", "__lt__", lambda v: v, "2"),
+                FilterItem("last_name", OP_ILIKE, lambda v: f"%{v}%", "name"),
+            ],
+            parse_filters(
+                {f"id[{OP_LT}]": "2", f"last_name[{OP_ILIKE}]": "name"},
                 AuthorResource,
             ),
         )

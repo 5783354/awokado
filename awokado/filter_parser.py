@@ -10,6 +10,8 @@ from awokado.consts import (
     OP_IN,
     OP_EMPTY,
     OP_CONTAINS,
+    OP_LT,
+    OP_GT,
 )
 from awokado.exceptions.bad_request import BadFilter
 
@@ -21,6 +23,8 @@ OPERATORS_MAPPING = {
     OP_IN: ("in_", lambda v: v),
     OP_EMPTY: ("is_", lambda v: None),
     OP_CONTAINS: (OP_CONTAINS, lambda v: v),
+    OP_LT: ("__lt__", lambda v: v),
+    OP_GT: ("__gt__", lambda v: v),
 }
 FilterItem = namedtuple("FilterItem", ("field", "op", "wrapper", "value"))
 

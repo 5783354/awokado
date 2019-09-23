@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.4b2] - 2019-09-23
+
+### Added
+
+- Added lt and gt operators in filtering.
+
 ## [0.4b1] - 2019-09-18
 
 ### Added

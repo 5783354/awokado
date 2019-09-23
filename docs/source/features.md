@@ -12,6 +12,9 @@
 * in
 * empty
 * contains
+* gt
+* lt
+
 
 ##### examples
 `/v1/user/?username[ilike]=Andy`
