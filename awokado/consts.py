@@ -19,6 +19,8 @@ OP_ILIKE = "ilike"
 OP_IN = "in"
 OP_EMPTY = "empty"
 OP_CONTAINS = "contains"
+OP_LT = "lt"
+OP_GT = "gt"
 
 DEFAULT_ACCESS_CONTROL_HEADERS = [
     [
