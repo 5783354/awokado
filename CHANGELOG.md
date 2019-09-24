@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.4b3] - 2019-09-24
+
+### Fixes
+
+- `Resource.Meta.skip_doc = True` was generating broken swagger.yml 
+
 ## [0.4b2] - 2019-09-23
 
 ### Added
