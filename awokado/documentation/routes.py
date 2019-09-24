@@ -52,6 +52,9 @@ def collect_routes(falcon_app):
             if not any(m in resource.Meta.methods for m in valid_methods):
                 continue
 
+            if hasattr(resource.Meta, "skip_doc") and resource.Meta.skip_doc:
+                continue
+
             if not isinstance(method, functools.partial):
                 r = new_route(
                     r_name, var_name, method_name.lower(), method, resource

@@ -46,7 +46,7 @@ setup(
         "boto3",
         "dynaconf",
         "falcon==2.0.0",
-        "marshmallow>=3.0.0rc3",
+        "marshmallow>=3.0.0rc5",
         "pyaml",
         "clavis",
         "apispec==2.0.1",
