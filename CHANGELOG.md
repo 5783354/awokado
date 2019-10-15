@@ -2,6 +2,12 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.4b4] - 2019-10-15
+
+### Fixes
+
+- Fix receiving field from relative model
+
 ## [0.4b3] - 2019-09-24
 
 ### Fixes

@@ -29,6 +29,7 @@ class BookTest(BaseAPITest):
                 "id": book_id,
                 "title": "The Dead Zone",
                 "author": author_id,
+                "author_name": "Steven",
                 "description": None,
                 "store": None,
                 "tags": [],
@@ -79,6 +80,7 @@ class BookTest(BaseAPITest):
                     "a car accident, former schoolteacher"
                 ),
                 "author": author_id,
+                "author_name": "Steven",
                 "store": None,
                 "tags": [],
             },
