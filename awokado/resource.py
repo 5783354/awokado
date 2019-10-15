@@ -8,6 +8,7 @@ from clavis import Transaction
 from marshmallow import utils, Schema
 from marshmallow.fields import List
 from marshmallow.schema import SchemaMeta
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from awokado.auth import BaseAuth
 from awokado.consts import (
@@ -569,6 +570,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     def read__query(self, ctx):
         fields_to_select = {}
+        to_group_by = []
 
         for field_name, field in self.fields.items():
             model_field = field.metadata.get("model_field")
@@ -589,6 +591,11 @@ class BaseResource(Schema, metaclass=ResourceMeta):
                 fields_to_select[field_name] = model_field
             else:
                 fields_to_select[field_name] = model_field
+                if (
+                    isinstance(model_field, InstrumentedAttribute)
+                    and model_field.class_ is not self.Meta.model
+                ):
+                    to_group_by.append(model_field)
 
         q = sa.select([clm.label(lbl) for lbl, clm in fields_to_select.items()])
 
@@ -605,7 +612,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         if joins is not None:
             model_id = get_id_field(self)
-            q = q.group_by(model_id)
+            q = q.group_by(model_id, *to_group_by)
 
         ctx.q = q
 
