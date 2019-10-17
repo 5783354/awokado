@@ -29,7 +29,7 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: Libraries :: Application Frameworks",
@@ -44,6 +44,7 @@ setup(
         "bcrypt",
         "bulky",
         "boto3",
+        "cached-property",
         "dynaconf",
         "falcon==2.0.0",
         "marshmallow>=3.0.0rc5",
@@ -54,5 +55,5 @@ setup(
         "SQLAlchemy>=1.3.0",
         "m2r",
     ),
-    python_requires=">=3.6",
+    python_requires=">=3.7",
 )

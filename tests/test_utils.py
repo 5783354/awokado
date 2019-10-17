@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from awokado.utils import cached_property
+from cached_property import cached_property
 
 
 class CachedPropertyTest(TestCase):
@@ -8,7 +8,7 @@ class CachedPropertyTest(TestCase):
         execution_counter = 0
 
         @cached_property
-        def test_property(self):
+        def test_property(self) -> str:
             self.execution_counter += 1
             return "test"
 
@@ -31,7 +31,7 @@ class CachedPropertyTest(TestCase):
 
     def test_none_object(self):
         @cached_property
-        def test():
+        def test() -> str:
             return "test"
 
         self.assertIsInstance(test, cached_property)

@@ -2,6 +2,17 @@
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [0.4b5] - 2019-10-16
+
+### Added
+
+- Class for database config
+
+### Changed
+
+- Move cached_property to deps
+- Now we use Python 3.7
+
 ## [0.4b4] - 2019-10-15
 
 ### Fixes
