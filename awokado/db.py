@@ -4,38 +4,17 @@ from sqlalchemy.pool import QueuePool
 import clavis
 from dynaconf import settings
 
-DATABASE_PASSWORD = settings.get("DATABASE_PASSWORD", None)
-DATABASE_HOST = settings.get("DATABASE_HOST", None)
-DATABASE_USER = settings.get("DATABASE_USER", None)
-DATABASE_PORT = settings.get("DATABASE_PORT", None)
-DATABASE_DB = settings.get("DATABASE_DB", None)
+from awokado.db_helper import Database
 
-DATABASE_URL = settings.get("DATABASE_URL", None)
 
-separated_db_params_flag = any(
-    [
-        DATABASE_PASSWORD,
-        DATABASE_HOST,
-        DATABASE_USER,
-        DATABASE_PORT,
-        DATABASE_DB,
-    ]
-)
+database = Database.from_config(settings)
 
-if separated_db_params_flag:
-    if DATABASE_URL:
-        raise Exception(
-            "Cannot specify DATABASE_URL and any of other database params"
-            " together! (Other database params are: DATABASE_PASSWORD,"
-            " DATABASE_HOST, DATABASE_USER, DATABASE_PORT, DATABASE_DB)"
-        )
-
-    DATABASE_URL = (
-        f"postgresql://"
-        f"{DATABASE_USER}:{DATABASE_PASSWORD}@"
-        f"{DATABASE_HOST}:{DATABASE_PORT}/"
-        f"{DATABASE_DB}"
-    )
+DATABASE_URL = database.db_url
+DATABASE_PASSWORD = database.DATABASE_PASSWORD
+DATABASE_HOST = database.DATABASE_HOST
+DATABASE_USER = database.DATABASE_USER
+DATABASE_PORT = database.DATABASE_PORT
+DATABASE_DB = database.DATABASE_DB
 
 clavis.configure(DATABASE_URL)
 

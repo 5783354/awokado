@@ -4,6 +4,7 @@ from typing import Union, Tuple, Dict, Any, List as ListType, Optional
 import bulky
 import falcon
 import sqlalchemy as sa
+from cached_property import cached_property
 from clavis import Transaction
 from marshmallow import utils, Schema
 from marshmallow.fields import List
@@ -39,7 +40,6 @@ from awokado.utils import (
     get_sort_way,
     get_read_params,
     has_resource_auth,
-    cached_property,
     get_id_field,
     get_ids_from_payload,
 )
