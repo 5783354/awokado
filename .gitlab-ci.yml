@@ -1,12 +1,14 @@
 stages:
-- test
-- build
+  - test
+  - build
 
 tests:
   image: python:3.7
   stage: test
   services:
-  - postgres:9.6.7
+    - postgres:9.6.7
+  only:
+    - merge_requests
   cache:
     paths:
       - $PIP_CACHE_DIR
@@ -17,21 +19,21 @@ tests:
     PIPENV_CACHE_DIR: $CI_PROJECT_DIR/.cache/pipenv
 
   before_script:
-  - pip install pipenv
-  - pipenv install --deploy --dev
-  - pipenv run python3 -m tests.test_app.init_db
+    - pip install pipenv
+    - pipenv install --deploy --dev
+    - pipenv run python3 -m tests.test_app.init_db
 
   script:
-  - pipenv run black --check --diff ./
-  - pipenv run mypy --ignore-missing-imports ./awokado/
-  - pipenv run coverage run --source=awokado -m unittest discover
-  - pipenv run coverage report -m
+    - pipenv run black --check --diff ./
+    - pipenv run mypy --ignore-missing-imports ./awokado/
+    - pipenv run coverage run --source=awokado -m unittest discover
+    - pipenv run coverage report -m
 
 build:
   image: python:3.7
   stage: build
   only:
-  - master
+    - master
 
   before_script:
     - pip install twine
@@ -40,10 +42,10 @@ build:
     - git config --global user.password $NPA_PASSWORD
 
   script:
-  - python3 setup.py sdist bdist_wheel
-  - twine upload --skip-existing dist/* -u $PYPI_USER -p $PYPI_PASSWORD
-  - git remote set-url origin https://$NPA_USER:$NPA_PASSWORD@gitlab.com/5783354/awokado.git
-  - git tag | egrep -q $(python awokado/version.py) || (git tag -am "Release $(python awokado/version.py)" $(python awokado/version.py) && git push origin $(python awokado/version.py))
+    - python3 setup.py sdist bdist_wheel
+    - twine upload --skip-existing dist/* -u $PYPI_USER -p $PYPI_PASSWORD
+    - git remote set-url origin https://$NPA_USER:$NPA_PASSWORD@gitlab.com/5783354/awokado.git
+    - git tag | egrep -q $(python awokado/version.py) || (git tag -am "Release $(python awokado/version.py)" $(python awokado/version.py) && git push origin $(python awokado/version.py))
 
 
 
