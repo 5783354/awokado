@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 import sqlalchemy as sa
+from marshmallow.fields import List as ListField
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.selectable import Select
@@ -66,7 +67,7 @@ class ReadContext:
             value = filter_value_to_python(value)
 
             list_deserialization = isinstance(value, list) and not isinstance(
-                resource_field, List
+                resource_field, ListField
             )
 
             if value is not None:
