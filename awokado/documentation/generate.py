@@ -31,7 +31,7 @@ INNER_METHOD_MAP = {
 }
 
 
-class APIDocs(object):
+class APIDocs:
     def __init__(
         self,
         routes: list,

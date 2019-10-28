@@ -88,9 +88,7 @@ def has_resource_auth(resource):
 
 
 def json_error_serializer(
-    req: falcon.request.Request,
-    resp: falcon.response.Response,
-    exception: BaseApiException,
+    req: falcon.Request, resp: falcon.Response, exception: BaseApiException
 ):
     # Serialize exception
     resp.body = exception.to_json()

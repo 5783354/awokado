@@ -40,7 +40,7 @@ class StoreTest(BaseAPITest):
         self.assertEqual(
             api_response.status, "400 Bad Request", api_response.text
         )
-        self.assertTrue("Invalid schema" in api_response.text)
+        self.assertIn("Invalid schema", api_response.text)
 
     @patch("awokado.resource.Transaction", autospec=True)
     def test_update(self, session_patch):

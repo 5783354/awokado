@@ -1,47 +1,35 @@
 import json
-from typing import Union, Tuple, Dict, Any, List as ListType, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import bulky
 import falcon
 import sqlalchemy as sa
 from cached_property import cached_property
 from clavis import Transaction
-from marshmallow import utils, Schema
-from marshmallow.fields import List
+from marshmallow import utils, Schema, ValidationError
 from marshmallow.schema import SchemaMeta
-from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 from awokado.auth import BaseAuth
 from awokado.consts import (
     AUDIT_DEBUG,
-    UPDATE,
     BULK_CREATE,
     BULK_UPDATE,
     CREATE,
-    OP_IN,
     DELETE,
+    OP_IN,
+    UPDATE,
 )
 from awokado.custom_fields import ToMany, ToOne
 from awokado.db import DATABASE_URL, persistent_engine
-from awokado.exceptions import (
-    BadRequest,
-    BadFilter,
-    MethodNotAllowed,
-    RelationNotFound,
-)
-from awokado.filter_parser import (
-    filter_value_to_python,
-    FilterItem,
-    OPERATORS_MAPPING,
-)
+from awokado.exceptions import BadRequest, MethodNotAllowed
+from awokado.filter_parser import FilterItem, OPERATORS_MAPPING
 from awokado.request import ReadContext
 from awokado.response import Response
 from awokado.utils import (
-    get_sort_way,
-    get_read_params,
-    has_resource_auth,
     get_id_field,
     get_ids_from_payload,
+    get_read_params,
+    has_resource_auth,
 )
 
 
@@ -53,14 +41,12 @@ class ResourceMeta(SchemaMeta):
         new_resource.RESOURCES[new_resource.Meta.name] = new_resource
         res_meta = new_resource.Meta
 
-        if res_meta.name == "base_resource":
-            return new_resource
-        elif res_meta.name == "_resource":
+        if res_meta.name in ("base_resource", "_resource"):
             return new_resource
 
-        if not hasattr(res_meta, "methods") or not res_meta.methods:
+        if not getattr(res_meta, "methods", None):
             raise Exception(f"{cls_name} must have Meta.methods")
-        if not hasattr(res_meta, "name") or not res_meta.name:
+        if not getattr(res_meta, "name", None):
             raise Exception(f"{cls_name} must have Meta.name")
 
         new_resource_obj = new_resource()
@@ -88,14 +74,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     class Meta:
         """
-                :param name:  used for two resources connection by relation
-                :param model: represents sqlalchemy model or cte
-                :param methods:  tuple of methods you want to allow
-                :param auth: awokado `BaseAuth <reference.html#awokado.auth.BaseAuth>`_  class for embedding authentication logic
-                :param skip_doc:  set true if you don't need to add the resource to documentation
-                :param disable_total: set false, if you don't need to know returning objects amount in read-requests
-                :param select_from: provide data source here if your resource use another's model fields (for example sa.outerjoin(FirstModel, SecondModel, FirstModel.id == SecondModel.first_model_id))
-
+        :param name:  used for two resources connection by relation
+        :param model: represents sqlalchemy model or cte
+        :param methods:  tuple of methods you want to allow
+        :param auth: awokado `BaseAuth <reference.html#awokado.auth.BaseAuth>`_  class for embedding authentication logic
+        :param skip_doc:  set true if you don't need to add the resource to documentation
+        :param disable_total: set false, if you don't need to know returning objects amount in read-requests
+        :param select_from: provide data source here if your resource use another's model fields (for example sa.outerjoin(FirstModel, SecondModel, FirstModel.id == SecondModel.first_model_id))
         """
 
         name = "base_resource"
@@ -110,12 +95,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     # Marshmallow validation methods
     ###########################################################################
 
-    def validate_create_request(
-        self,
-        req: falcon.request.Request,
-        resp: falcon.response.Response,
-        is_bulk=False,
-    ):
+    def validate_create_request(self, req: falcon.Request, is_bulk=False):
         methods = self.Meta.methods
         payload = json.load(req.bounded_stream)
 
@@ -130,48 +110,45 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         data = payload.get(self.Meta.name)
 
-        if not data:
-            raise BadRequest(
-                f"Invalid schema, resource name is missing at the top level. "
-                f"Your POST request has to look like: "
-                f'{{"{self.Meta.name}": [{{"field_name": "field_value"}}] '
-                f'or {{"field_name": "field_value"}} }}'
-            )
+        try:
+            deserialized = self.load(data, many=is_bulk)
+        except ValidationError as exc:
+            if exc.messages == {"_schema": ["Invalid input type."]}:
+                raise BadRequest(
+                    f"Invalid schema, resource name is missing at the top level. "
+                    f"Your POST request has to look like: "
+                    f'{{"{self.Meta.name}": [{{"field_name": "field_value"}}] '
+                    f'or {{"field_name": "field_value"}} }}'
+                )
+            raise BadRequest(exc.messages)
 
-        errors = self.validate(data, many=is_bulk)
+        try:
+            deserialized = self.load(data, many=is_bulk)
+        except ValidationError as exc:
+            raise BadRequest(exc.messages)
 
-        if errors:
-            raise BadRequest(errors)
+        req.stream = {self.Meta.name: deserialized}
 
-        req.stream = payload
-
-    def validate_update_request(
-        self, req: falcon.request.Request, resp: falcon.response.Response
-    ):
+    def validate_update_request(self, req: falcon.Request):
         methods = self.Meta.methods
         if UPDATE not in methods and BULK_UPDATE not in methods:
             raise MethodNotAllowed()
 
         payload = json.load(req.bounded_stream)
-        errors = self.validate(
-            payload.get(self.Meta.name), partial=True, many=True
-        )
+        data = payload.get(self.Meta.name)
+        try:
+            deserialized = self.load(data, partial=True, many=True)
+        except ValidationError as exc:
+            raise BadRequest(exc.messages)
 
-        if errors:
-            raise BadRequest(errors)
-
-        req.stream = payload
+        req.stream = {self.Meta.name: deserialized}
 
     ###########################################################################
     # Falcon methods
     ###########################################################################
 
     def on_patch(
-        self,
-        req: falcon.request.Request,
-        resp: falcon.response.Response,
-        *args,
-        **kwargs,
+        self, req: falcon.Request, resp: falcon.Response, *args, **kwargs
     ):
         """
         Falcon method. PATCH-request entry point.
@@ -180,14 +157,14 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
         Then update method is run.
 
-        :param req: falcon.request.Request
-        :param resp: falcon.response.Response
+        :param req: falcon.Request
+        :param resp: falcon.Response
         """
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
             user_id, _ = self.auth(session, req, resp)
 
-            self.validate_update_request(req, resp)
+            self.validate_update_request(req)
 
             payload = req.stream
 
@@ -206,9 +183,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         resp.body = json.dumps(result, default=str)
 
-    def on_post(
-        self, req: falcon.request.Request, resp: falcon.response.Response
-    ):
+    def on_post(self, req: falcon.Request, resp: falcon.Response):
         """
         Falcon method. POST-request entry point.
 
@@ -216,14 +191,14 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
         Then create method is run.
 
-        :param req: falcon.request.Request
-        :param resp: falcon.response.Response
+        :param req: falcon.Request
+        :param resp: falcon.Response
         """
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
             user_id, token = self.auth(session, req, resp)
 
-            self.validate_create_request(req, resp)
+            self.validate_create_request(req)
 
             payload = req.stream
 
@@ -251,8 +226,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     def on_get(
         self,
-        req: falcon.request.Request,
-        resp: falcon.response.Response,
+        req: falcon.Request,
+        resp: falcon.Response,
         resource_id: int = None,
     ):
         """
@@ -262,8 +237,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
         Then read_handler method is run. It's responsible for the whole read workflow.
 
-        :param req: falcon.request.Request
-        :param resp: falcon.response.Response
+        :param req: falcon.Request
+        :param resp: falcon.Response
         """
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
@@ -277,8 +252,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     def on_delete(
         self,
-        req: falcon.request.Request,
-        resp: falcon.response.Response,
+        req: falcon.Request,
+        resp: falcon.Response,
         resource_id: int = None,
     ):
         """
@@ -288,8 +263,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
         Then delete method is run.
 
-        :param req: falcon.request.Request
-        :param resp: falcon.response.Response
+        :param req: falcon.Request
+        :param resp: falcon.Response
         """
 
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
@@ -338,8 +313,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         """
         data = payload[self.Meta.name]
 
-        raw_result = self.load(data, many=True, partial=True)
-        data_to_update = self._to_update(raw_result)
+        data_to_update = self._to_update(data)
 
         ids = get_ids_from_payload(self.Meta.model, data_to_update)
 
@@ -374,12 +348,9 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         data = payload[self.Meta.name]
 
         if isinstance(data, list):
-            result = self.bulk_create(session, user_id, data)
-            return result
+            return self.bulk_create(session, user_id, data)
 
-        result = self.load(data)
-
-        data_to_insert = self._to_create(result)
+        data_to_insert = self._to_create(data)
 
         # insert to DB
         resource_id = session.execute(
@@ -391,17 +362,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         data["id"] = resource_id
         self._save_m2m(session, data)
 
-        result = self.read_handler(
+        return self.read_handler(
             session=session, user_id=user_id, resource_id=resource_id
         )
 
-        return result
-
     def bulk_create(self, session, user_id: int, data: list) -> dict:
-        raw_result = self.load(data, many=True)
-
         data_to_insert = []
-        for item in raw_result:
+        for item in data:
             data_to_insert.append(self._to_create(item))
 
         # insert to DB
@@ -472,7 +439,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         session,
         user_id: int,
         include: list = None,
-        filters: Optional[ListType[FilterItem]] = None,
+        filters: Optional[List[FilterItem]] = None,
         sort: list = None,
         resource_id: int = None,
         limit: int = None,
@@ -481,7 +448,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         ctx = ReadContext(
             session,
-            type(self),
+            self,
             user_id,
             include,
             filters,
@@ -496,7 +463,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         self.read__sorting(ctx)
 
         self.read__pagination(ctx)
-        self.read__execute_query(session, ctx)
+        self.read__execute_query(ctx)
 
         if not ctx.obj_ids:
             if ctx.is_list:
@@ -505,183 +472,29 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             else:
                 raise BadRequest("Object Not Found")
 
-        self.read__includes(session, ctx)
-        serialized_data = self.read__serializing(ctx)
-        return serialized_data
+        self.read__includes(ctx)
+        return self.read__serializing(ctx)
+
+    def read__query(self, ctx: ReadContext):
+        return ctx.read__query()
 
     def read__filtering(self, ctx: ReadContext):
-        if not ctx.query:
-            return
-
-        resource_fields = self.fields
-        filters_to_apply = []
-
-        for f in ctx.query:
-            resource_field = resource_fields.get(f.field)
-
-            # if not resource_field:
-            #     raise BadFilter(
-            #         details="Filed <{}> doesn't exist".format(f.field)
-            #     )
-
-            model_field = resource_field.metadata.get("model_field")
-
-            if model_field is None:
-                raise BadFilter(filter=f.field)
-
-            value = f.wrapper(f.value)
-            value = filter_value_to_python(value)
-
-            list_deserialization = isinstance(value, list) and not isinstance(
-                resource_field, List
-            )
-
-            if value is not None:
-                if list_deserialization:
-                    value = [resource_field.deserialize(item) for item in value]
-                else:
-                    value = resource_field.deserialize(value)
-
-            field_expr = getattr(model_field, f.op)(value)
-            filters_to_apply.append(field_expr)
-
-        ctx.q = ctx.q.where(sa.and_(*filters_to_apply))
+        return ctx.read__filtering()
 
     def read__sorting(self, ctx: ReadContext):
-        if ctx.sort:
-            # TODO: add support for routes
-            # example: (xxx.names.display_name)
-            for sort_item in ctx.sort:
-                sort_route, sort_way = get_sort_way(sort_item)
-
-                if sort_route in self.fields.keys():
-                    r_field = self.fields.get(sort_route)
-                    ctx.q = ctx.q.order_by(
-                        sort_way(r_field.metadata.get("model_field"))
-                    )
+        return ctx.read__sorting()
 
     def read__pagination(self, ctx: ReadContext):
-        limit = ctx.limit
-        offset = ctx.offset
-        if limit:
-            ctx.q = ctx.q.limit(limit)
-        if offset:
-            ctx.q = ctx.q.offset(offset)
+        return ctx.read__pagination()
 
-    def read__query(self, ctx):
-        fields_to_select = {}
-        to_group_by = []
+    def read__execute_query(self, ctx: ReadContext):
+        return ctx.read__execute_query()
 
-        for field_name, field in self.fields.items():
-            model_field = field.metadata.get("model_field")
-            if field.load_only:
-                continue
-
-            if model_field is None:
-                raise Exception(
-                    f"{self.Meta.name}.{field_name} field must have "
-                    f"'model_field' argument"
-                )
-
-            if isinstance(field, ToMany):
-                fields_to_select[field_name] = sa.func.array_remove(
-                    sa.func.array_agg(model_field), None
-                )
-            elif isinstance(field, ToOne):
-                fields_to_select[field_name] = model_field
-            else:
-                fields_to_select[field_name] = model_field
-                if (
-                    isinstance(model_field, InstrumentedAttribute)
-                    and model_field.class_ is not self.Meta.model
-                ):
-                    to_group_by.append(model_field)
-
-        q = sa.select([clm.label(lbl) for lbl, clm in fields_to_select.items()])
-
-        joins = getattr(self.Meta, "select_from", None)
-        if joins is not None:
-            q = q.select_from(joins)
-
-        if not ctx.is_list:
-            model_id = get_id_field(self)
-            q = q.where(model_id == ctx.resource_id)
-
-        if has_resource_auth(self):
-            q = self.Meta.auth.can_read(ctx, q)
-
-        if joins is not None:
-            model_id = get_id_field(self)
-            q = q.group_by(model_id, *to_group_by)
-
-        ctx.q = q
-
-    def read__includes(self, session, ctx: ReadContext):
-        for i in ctx.include or []:
-            if "." in i:
-                raise BadRequest()
-
-            elif not isinstance(self.fields.get(i), (ToOne, ToMany)):
-                raise RelationNotFound(f"Relation <{i}> not found")
-
-            else:
-                related_resource_name = self.fields[i].metadata["resource"]
-                related_res = self.RESOURCES[related_resource_name]
-                related_field = self.fields[i].metadata.get("model_field")
-                method_name = f"get_by_{self.Meta.name.lower()}_ids"
-
-                if not hasattr(related_res, method_name):
-                    raise BadRequest(
-                        f"Relation {related_resource_name} doesn't ready yet. "
-                        f"Ask developers to add {method_name} method "
-                        f"to {related_resource_name} resource"
-                    )
-
-                related_res_obj = related_res()
-                related_data = getattr(related_res_obj, method_name)(
-                    session, ctx, related_field
-                )
-                self.__add_related_payload(ctx, related_res, related_data)
-
-    @staticmethod
-    def __add_related_payload(
-        ctx: ReadContext, related_res, related_data: list
-    ):
-        if related_res.Meta.name in ctx.related_payload:
-            related_res = related_res()
-            related_res_id_field = get_id_field(related_res, name_only=True)
-            existing_record_ids = [
-                rec[related_res_id_field]
-                for rec in ctx.related_payload[related_res.Meta.name]
-            ]
-            for rec in related_data:
-                if rec[related_res_id_field] not in existing_record_ids:
-                    ctx.related_payload[related_res.Meta.name].append(rec)
-        else:
-            ctx.related_payload[related_res.Meta.name] = related_data
+    def read__includes(self, ctx: ReadContext):
+        return ctx.read__includes()
 
     def read__serializing(self, ctx: ReadContext) -> Dict:
-        response = self.Response(self, ctx.is_list)
-        response.set_parent_payload(ctx.parent_payload)
-        response.set_related_payload(ctx.related_payload)
-        response.set_total(ctx.total)
-        serialized_response = response.serialize()
-        return serialized_response
-
-    def read__execute_query(self, session, ctx: ReadContext):
-        if not self.Meta.disable_total:
-            ctx.q.append_column(sa.func.count().over().label("total"))
-
-        result = session.execute(ctx.q).fetchall()
-
-        serialized_data = self.dump(result, many=True)
-
-        id_field = get_id_field(self, name_only=True)
-        ctx.obj_ids.extend([_i[id_field] for _i in serialized_data])
-        ctx.parent_payload = serialized_data
-
-        if serialized_data and not self.Meta.disable_total:
-            ctx.total = result[0].total
+        return ctx.read__serializing()
 
     def get_related_model(self, field: Union[ToOne, ToMany]):
         resource_name = field.metadata.get("resource")

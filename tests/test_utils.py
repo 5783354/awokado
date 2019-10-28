@@ -4,7 +4,7 @@ from cached_property import cached_property
 
 
 class CachedPropertyTest(TestCase):
-    class Foo(object):
+    class Foo:
         execution_counter = 0
 
         @cached_property
