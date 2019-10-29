@@ -62,7 +62,7 @@ class Response:
         if resource:
             self.include_total = not resource.Meta.disable_total
 
-    def serialize(self) -> Dict:
+    def serialize(self) -> dict:
         if self.related_payload and self.payload:
             self.payload.update(self.related_payload)
 
@@ -84,14 +84,14 @@ class Response:
     def set_total(self, total_objects_count: int):
         self.total = total_objects_count
 
-    def _serialize_single(self) -> Dict:
+    def _serialize_single(self) -> dict:
         if not self.payload:
             self.set_parent_payload()
 
         response: Dict = self.payload
         return response
 
-    def _serialize_list(self) -> Dict:
+    def _serialize_list(self) -> dict:
         if not self.payload:
             self.set_parent_payload()
 

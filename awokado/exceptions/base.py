@@ -21,8 +21,8 @@ class BaseApiException(Exception):
         return True
 
     def __str__(self):
-        details = ". {}".format(self.details) if self.details else self.details
-        return "{status}{details}".format(status=self.status, details=details)
+        details = f". {self.details}" if self.details else self.details
+        return f"{self.status}{details}"
 
     def to_json(self):
         """

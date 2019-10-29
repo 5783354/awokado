@@ -53,11 +53,6 @@ class ReadContext:
         for f in self.query:
             resource_field = self.resource.fields.get(f.field)
 
-            # if not resource_field:
-            #     raise BadFilter(
-            #         details="Filed <{}> doesn't exist".format(f.field)
-            #     )
-
             model_field = resource_field.metadata.get("model_field")
 
             if model_field is None:
@@ -191,7 +186,7 @@ class ReadContext:
             )
             self.__add_related_payload(related_res, related_data)
 
-    def read__serializing(self) -> Dict:
+    def read__serializing(self) -> dict:
         response = self.resource.Response(self.resource, self.is_list)
         response.set_parent_payload(self.parent_payload)
         response.set_related_payload(self.related_payload)

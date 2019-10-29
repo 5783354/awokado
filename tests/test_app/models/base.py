@@ -1,10 +1,11 @@
 from datetime import datetime
 
 import sqlalchemy as _sa
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import as_declarative
 
 
-class _Base:
+@as_declarative()
+class Model:
     @classmethod
     def PK(cls) -> _sa.Column:
         """
@@ -65,6 +66,3 @@ class _Base:
         onupdate=datetime.now,
         index=True,
     )
-
-
-Model = declarative_base(cls=_Base)

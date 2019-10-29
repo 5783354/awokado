@@ -1,6 +1,14 @@
 # Changelog
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+## [0.5b2] - 2019-10-28
+
+### Fixes
+
+- Move args parsing to FilterItem dataclass
+- Fix typing issues
+- Fix code duplication in validate_create_request
+
 ## [0.5b1] - 2019-10-28
 
 ### Fixes
