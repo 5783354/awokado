@@ -22,7 +22,7 @@ from awokado.consts import (
 from awokado.custom_fields import ToMany, ToOne
 from awokado.db import DATABASE_URL, persistent_engine
 from awokado.exceptions import BadRequest, MethodNotAllowed
-from awokado.filter_parser import FilterItem, OPERATORS_MAPPING
+from awokado.filter_parser import FilterItem
 from awokado.request import ReadContext
 from awokado.response import Response
 from awokado.utils import (
@@ -110,17 +110,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         data = payload.get(self.Meta.name)
 
-        try:
-            deserialized = self.load(data, many=is_bulk)
-        except ValidationError as exc:
-            if exc.messages == {"_schema": ["Invalid input type."]}:
-                raise BadRequest(
-                    f"Invalid schema, resource name is missing at the top level. "
-                    f"Your POST request has to look like: "
-                    f'{{"{self.Meta.name}": [{{"field_name": "field_value"}}] '
-                    f'or {{"field_name": "field_value"}} }}'
-                )
-            raise BadRequest(exc.messages)
+        if not data:
+            raise BadRequest(
+                f"Invalid schema, resource name is missing at the top level. "
+                f"Your POST request has to look like: "
+                f'{{"{self.Meta.name}": [{{"field_name": "field_value"}}] '
+                f'or {{"field_name": "field_value"}} }}'
+            )
 
         try:
             deserialized = self.load(data, many=is_bulk)
@@ -156,9 +152,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Here is a database transaction opening.
         This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
         Then update method is run.
-
-        :param req: falcon.Request
-        :param resp: falcon.Response
         """
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
@@ -190,9 +183,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Here is a database transaction opening.
         This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
         Then create method is run.
-
-        :param req: falcon.Request
-        :param resp: falcon.Response
         """
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
@@ -216,9 +206,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         resp.body = json.dumps(result, default=str)
 
     def auth(self, *args, **kwargs) -> Tuple[int, str]:
-        """
-        this method should return (user_id, token) tuple
-        """
+        """This method should return (user_id, token) tuple"""
         return 0, ""
 
     def audit_log(self, *args, **kwargs):
@@ -236,9 +224,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Here is a database transaction opening.
         This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
         Then read_handler method is run. It's responsible for the whole read workflow.
-
-        :param req: falcon.Request
-        :param resp: falcon.Response
         """
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
@@ -262,9 +247,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Here is a database transaction opening.
         This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
         Then delete method is run.
-
-        :param req: falcon.Request
-        :param resp: falcon.Response
         """
 
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
@@ -301,7 +283,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     def update(
         self, session, payload: dict, user_id: int, *args, **kwargs
-    ) -> Dict:
+    ) -> dict:
         """
 
         First of all, data is prepared for updating:
@@ -320,11 +302,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         session.bulk_update_mappings(self.Meta.model, data_to_update)
         self._save_m2m(session, data, update=True)
 
-        op = OPERATORS_MAPPING[OP_IN]
         result = self.read_handler(
             session=session,
             user_id=user_id,
-            filters=[FilterItem("id", op[0], op[1], ids)],
+            filters=[FilterItem.create("id", OP_IN, ids)],
         )
 
         return result
@@ -380,11 +361,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         )
         ids = [r.id for r in resource_ids]
 
-        op = OPERATORS_MAPPING[OP_IN]
         result = self.read_handler(
             session=session,
             user_id=user_id,
-            filters=[FilterItem("id", op[0], op[1], ids)],
+            filters=[FilterItem.create("id", OP_IN, ids)],
         )
 
         return result
@@ -444,7 +424,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         resource_id: int = None,
         limit: int = None,
         offset: int = None,
-    ) -> Dict:
+    ) -> dict:
 
         ctx = ReadContext(
             session,
@@ -493,7 +473,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
     def read__includes(self, ctx: ReadContext):
         return ctx.read__includes()
 
-    def read__serializing(self, ctx: ReadContext) -> Dict:
+    def read__serializing(self, ctx: ReadContext) -> dict:
         return ctx.read__serializing()
 
     def get_related_model(self, field: Union[ToOne, ToMany]):

@@ -22,9 +22,7 @@ class ResourceNotFound(NotFound):
         """
         if not details:
             if resource:
-                details = 'Resource "{resource_name}" not found'.format(
-                    resource_name=resource
-                )
+                details = f'Resource "{resource}" not found'
             else:
                 details = "Resource not found"
         NotFound.__init__(self, code="resource-not-found", details=details)

@@ -1,6 +1,6 @@
 import re
-from collections import namedtuple
-from typing import Iterable
+from dataclasses import dataclass
+from typing import Type, List, Any, Callable, Dict, Tuple
 
 from awokado.consts import (
     OP_LTE,
@@ -15,18 +15,72 @@ from awokado.consts import (
 )
 from awokado.exceptions.bad_request import BadFilter
 
-OPERATORS_MAPPING = {
+if False:
+    from awokado.resource import BaseResource
+
+OPERATORS_MAPPING: Dict[str, Tuple[str, Callable]] = {
     OP_LTE: ("__le__", lambda v: v),
     OP_EQ: ("__eq__", lambda v: v),
     OP_GTE: ("__ge__", lambda v: v),
-    OP_ILIKE: (OP_ILIKE, lambda v: f"%{v}%"),
+    OP_ILIKE: ("ilike", lambda v: f"%{v}%"),
     OP_IN: ("in_", lambda v: v),
     OP_EMPTY: ("is_", lambda v: None),
-    OP_CONTAINS: (OP_CONTAINS, lambda v: v),
+    OP_CONTAINS: ("contains", lambda v: v),
     OP_LT: ("__lt__", lambda v: v),
     OP_GT: ("__gt__", lambda v: v),
 }
-FilterItem = namedtuple("FilterItem", ("field", "op", "wrapper", "value"))
+
+
+@dataclass
+class FilterItem:
+    field: str
+    op: str
+    wrapper: Callable
+    value: Any
+
+    @classmethod
+    def create(cls, field_name: str, op_name: str, value: Any):
+        op = OPERATORS_MAPPING.get(op_name)
+
+        if not op:
+            raise BadFilter(details=f"Operator {op_name} doesn't exist")
+
+        if isinstance(value, str) and op[0] in ("in_", OP_CONTAINS):
+            value = value.split(",")
+
+        if op[0] == "is_" and value == "false":
+            op = ("isnot", lambda val: None)
+
+        return cls(field_name, op[0], op[1], value)
+
+    @classmethod
+    def parse(
+        cls, req_params: dict, resource: Type["BaseResource"]
+    ) -> List["FilterItem"]:
+        result = []
+        filter_expr = r"(?P<field_name>(%s))\[(?P<op_name>[a-z]+)\]" % "|".join(
+            resource().fields.keys()
+        )
+
+        for p, value in req_params.items():
+            re_result = re.match(filter_expr, p)
+            if not re_result:
+                continue
+
+            field_name = re_result.group("field_name")
+            op_name = re_result.group("op_name")
+
+            if not all([field_name, op_name, value]):
+                continue
+
+            result.append(cls.create(field_name, op_name, value))
+
+        return result
+
+    @classmethod
+    def id_in(cls, ids: List[int], field_name="id"):
+        op = OPERATORS_MAPPING[OP_IN]
+        return cls(field_name, op[0], op[1], ids)
 
 
 def filter_value_to_python(value):
@@ -61,41 +115,4 @@ def filter_value_to_python(value):
     return value
 
 
-def parse_filters(req_params, resource) -> Iterable[FilterItem]:
-    result = []
-    r = resource()
-    filter_expr = r"(?P<field>({res_fields}))" r"\[" r"(?P<op>[a-z]+)" r"\]"
-
-    res_field_names = "|".join(r.fields.keys())
-    filter_expr = filter_expr.format(res_fields=res_field_names)
-
-    for p, v in req_params.items():
-        re_result = re.match(filter_expr, p)
-        if not re_result:
-            continue
-
-        field_name = re_result.group("field")
-        op_name = re_result.group("op")
-        value = v
-
-        if not all([field_name, op_name, value]):
-            continue
-
-        op = OPERATORS_MAPPING.get(op_name)
-
-        if not op:
-            raise BadFilter(details="Operator {} doesn't exist".format(op_name))
-
-        if op[0] == "in_" or op[0] == OP_CONTAINS:
-            if isinstance(value, list):
-                value = value
-            elif "," in value:
-                value = value.split(",")
-            else:
-                value = [value]
-
-        if op[0] == "is_" and value == "false":
-            op = ("isnot", lambda val: None)
-
-        result.append(FilterItem(field_name, op[0], op[1], value))
-    return result
+parse_filters = FilterItem.parse

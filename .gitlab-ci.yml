@@ -25,7 +25,7 @@ tests:
 
   script:
     - pipenv run black --check --diff ./
-    - pipenv run mypy --ignore-missing-imports ./awokado/
+    - pipenv run mypy ./awokado/
     - pipenv run coverage run --source=awokado -m unittest discover
     - pipenv run coverage report -m
 
