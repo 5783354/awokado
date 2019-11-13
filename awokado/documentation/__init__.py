@@ -1,1 +1,1 @@
-from .generate import generate_documentation
+from .resources import SwaggerResource, SwaggerUIResource, RedocViewResource

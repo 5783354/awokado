@@ -4,20 +4,21 @@ from marshmallow import fields
 import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE
+from awokado.meta import ResourceMeta
 from awokado.request import ReadContext
-from tests.test_app.resources.base import Resource
+from awokado.resource import BaseResource
 
 
-class TagResource(Resource):
-    class Meta:
-        model = m.Tag
-        name = "tag"
-        methods = (CREATE, READ, UPDATE, BULK_UPDATE, DELETE)
-        auth = None
-        disable_total = True
-        select_from = sa.outerjoin(
+class TagResource(BaseResource):
+    Meta = ResourceMeta(
+        model=m.Tag,
+        name="tag",
+        methods=(CREATE, READ, UPDATE, BULK_UPDATE, DELETE),
+        disable_total=True,
+        select_from=sa.outerjoin(
             m.Tag, m.M2M_Book_Tag, m.Tag.id == m.M2M_Book_Tag.c.tag_id
-        ).outerjoin(m.Book, m.M2M_Book_Tag.c.book_id == m.Book.id)
+        ).outerjoin(m.Book, m.M2M_Book_Tag.c.book_id == m.Book.id),
+    )
 
     id = fields.Int(model_field=m.Tag.id)
     name = fields.String(model_field=m.Tag.name)

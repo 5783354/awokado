@@ -76,12 +76,12 @@ field in Book model where Author unique identifier is stored.
            name = "book"
            methods = (CREATE, READ, UPDATE)
 
-    id = fields.Int(model_field=m.Book.id)
-    title = fields.String(model_field=m.Book.title, required=True)
-    description = fields.String(model_field=m.Book.description)
-    author = custom_fields.ToOne(
-        resource="author", model_field=m.Book.author_id
-    )
+       id = fields.Int(model_field=m.Book.id)
+       title = fields.String(model_field=m.Book.title, required=True)
+       description = fields.String(model_field=m.Book.description)
+       author = custom_fields.ToOne(
+           resource="author", model_field=m.Book.author_id
+       )
 
 The continuation of building the connection is in the Author resource.
 Here we define another end of connection by the ToMany field.
@@ -98,28 +98,28 @@ Here we define another end of connection by the ToMany field.
                m.Author, m.Book, m.Author.id == m.Book.author_id
            )
 
-    id = fields.Int(model_field=m.Author.id)
-    books = custom_fields.ToMany(
-        fields.Int(),
-        resource="book",
-        model_field=m.Book.id,
-        description="Authors Books",
-    )
-    books_count = fields.Int(
-        dump_only=True, model_field=sa.func.count(m.Book.id)
-    )
-    name = fields.String(
-        model_field=sa.func.concat(
-            m.Author.first_name, " ", m.Author.last_name
-        ),
-        dump_only=True,
-    )
-    last_name = fields.String(
-        model_field=m.Author.last_name, required=True, load_only=True
-    )
-    first_name = fields.String(
-        model_field=m.Author.first_name, required=True, load_only=True
-    )
+       id = fields.Int(model_field=m.Author.id)
+       books = custom_fields.ToMany(
+           fields.Int(),
+           resource="book",
+           model_field=m.Book.id,
+           description="Authors Books",
+       )
+       books_count = fields.Int(
+           dump_only=True, model_field=sa.func.count(m.Book.id)
+       )
+       name = fields.String(
+           model_field=sa.func.concat(
+               m.Author.first_name, " ", m.Author.last_name
+           ),
+           dump_only=True,
+       )
+       last_name = fields.String(
+           model_field=m.Author.last_name, required=True, load_only=True
+       )
+       first_name = fields.String(
+           model_field=m.Author.first_name, required=True, load_only=True
+       )
 
 So finally here are the methods where we add logic for getting connected entities.
 
@@ -201,7 +201,7 @@ Test it using curl in terminal.
 
 Create entities using following curl:
 
-.. code-block:: python
+.. code-block:: bash
    :linenos:
 
    curl localhost:8000/v1/author --data-binary '{"author":{"last_name": "B","first_name": "Sier"}}' --compressed -v | python -m json.tool
@@ -232,63 +232,57 @@ Create entities using following curl:
 
 And then, with read request see what you've got:
 
-.. code-block:: python
+.. code-block:: bash
    :linenos:
 
    curl localhost:8000/v1/author?include=books | python -m json.tool
 
-   {
-       "meta": {
-           "total": 1
-       },
-       "payload": {
-           "author": [
-               {
-                   "books": [
-                       1
-                   ],
-                   "books_count": 1,
-                   "id": 1,
-                   "name": "Sier B"
-               }
-           ],
-           "book": [
-               {
-                   "description": "some_description",
-                   "id": 1,
-                   "title": "some_title"
-               }
-           ]
-       }
-   }
+      {
+          "meta": {
+              "total": 1
+          },
+          "payload": {
+              "author": [
+                  {
+                      "books": [
+                          1
+                      ],
+                      "books_count": 1,
+                      "id": 1,
+                      "name": "Sier B"
+                  }
+              ],
+              "book": [
+                  {
+                      "description": "some_description",
+                      "id": 1,
+                      "title": "some_title"
+                  }
+              ]
+          }
+      }
 
    curl localhost:8000/v1/book?include=author | python -m json.tool
 
-   {
-       "meta": {
-           "total": 1
-       },
-       "payload": {
-           "author": [
-               {
-                   "books_count": 1,
-                   "id": 1,
-                   "name": "Sier B"
-               }
-           ],
-           "book": [
-               {
-                   "author": 1,
-                   "description": "some_description",
-                   "id": 1,
-                   "title": "some_title"
-               }
-           ]
-       }
-   }
-
-
-
-
-
-
+      {
+          "meta": {
+              "total": 1
+          },
+          "payload": {
+              "author": [
+                  {
+                      "books_count": 1,
+                      "id": 1,
+                      "name": "Sier B"
+                  }
+              ],
+              "book": [
+                  {
+                      "author": 1,
+                      "description": "some_description",
+                      "id": 1,
+                      "title": "some_title"
+                  }
+              ]
+          }
+      }

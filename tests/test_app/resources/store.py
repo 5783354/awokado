@@ -4,22 +4,23 @@ from marshmallow import fields
 import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, BULK_CREATE
+from awokado.meta import ResourceMeta
 from awokado.request import ReadContext
-from tests.test_app.resources.base import Resource
-
+from awokado.resource import BaseResource
 
 STORE_OPEN = "open"
 STORE_CLOSED = "closed"
 
 
-class StoreResource(Resource):
-    class Meta:
-        model = m.Store
-        name = "store"
-        methods = (CREATE, BULK_CREATE, READ)
-        select_from = sa.outerjoin(
+class StoreResource(BaseResource):
+    Meta = ResourceMeta(
+        model=m.Store,
+        name="store",
+        methods=(CREATE, BULK_CREATE, READ),
+        select_from=sa.outerjoin(
             m.Store, m.Book, m.Store.id == m.Book.store_id
-        )
+        ),
+    )
 
     id = fields.Int(model_field=m.Store.id)
     book_ids = custom_fields.ToMany(

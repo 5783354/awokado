@@ -1,15 +1,18 @@
 import falcon
 
+from awokado.documentation import (
+    SwaggerResource,
+    SwaggerUIResource,
+    RedocViewResource,
+)
 from awokado.middleware import HttpMiddleware
 from awokado.utils import api_exception_handler
-from tests.test_app.resources.healthcheck import HealthCheckResource
-from .resources.author import AuthorResource
-from .resources.book import BookResource
-from .resources.store_stats import StoreStatsResource
-from .resources.forbidden_book import ForbiddenBookResource
-from .resources.store import StoreResource
-from .resources.tag import TagResource
-from .resources.tag_stats import TagStatsResource
+
+try:
+    from .resources import *
+except ImportError:
+    from resources import *
+
 
 api = falcon.API(middleware=[HttpMiddleware()])
 
@@ -31,6 +34,13 @@ api.add_route("/v1/tag/{resource_id}", TagResource())
 api.add_route("/v1/tag_stats/", TagStatsResource())
 api.add_route("/v1/tag_stats/{resource_id}", TagStatsResource())
 api.add_route("/v1/healthcheck/", HealthCheckResource())
+
+api.add_route(
+    "/swagger.yaml",
+    SwaggerResource(api=api, project_name="Example Documentation"),
+)
+api.add_route("/doc", SwaggerUIResource("/swagger.yaml"))
+api.add_route("/redoc", RedocViewResource("/swagger.yaml"))
 
 ###############################################################################
 ###############################################################################

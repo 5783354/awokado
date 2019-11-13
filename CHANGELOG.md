@@ -1,6 +1,27 @@
 # Changelog
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+## [0.6b0] - 2019-11-11
+
+### Added
+
+- `ApiViewer` resource (swagger ui)
+
+### Fixes
+
+- Fixed many typing issues, code simplified
+
+### Changed
+
+- Function `generate_documentation` replaced with `ApiResource` class
+- Updated `marshmallow` and `apispec` dependencies to latest versions
+- `Resource.Meta` now object of class `ResourceMeta`
+- Documentation now don't create `swagger.yaml` file. Now it stored in memory
+
+### Removed
+
+- `get_readme`, `empty_response` functions
+
 ## [0.5b2] - 2019-10-28
 
 ### Fixes

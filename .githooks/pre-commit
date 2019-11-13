@@ -1,6 +1,16 @@
 #!/bin/sh
-git diff --cached --name-status | awk '$1 == "M" { print $2}' | grep '.py' | xargs black --py36 -l 80 --check && echo '🤗 Black test passed ✅' && exit 0|| echo '🔥🔥🔥 Commit failed. ❌ You forgot to run "black --py36 -l 80 ./". Running BLACK now:' && git diff --cached --name-status | awk '$1 == "M" { print $2}' | grep '.py' | xargs black --py36 -l 80 && echo 'Done 🎄🦌🎁. Add reformatted files to your commit and try again' && exit 1
+
+FILES=$(git diff --cached --name-status | awk '$1 == "M" || $1 == "A" { print $2}' | grep '\.py$')
 
 
-
+if black --check ${FILES}
+then
+    echo '🤗 Black test passed ✅'
+    exit 0
+else
+    echo '🔥🔥🔥 Commit failed. ❌ You forgot to run "black ./". Running BLACK now:'
+    black ${FILES}
+    echo 'Done 🎄🦌🎁. Add reformatted files to your commit and try again'
+    exit 1
+fi
 

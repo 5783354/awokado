@@ -1,3 +1,4 @@
+import re
 from importlib.machinery import SourceFileLoader
 from os import path
 
@@ -12,6 +13,27 @@ VERSION = VERSION.__version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+
+def parse_deps(deps):
+    items = re.findall(r'(\w+) ?= ?"(.*)"', deps)
+    requires = []
+    for i in items:
+        dep = i[0]
+        if i[1] != "*":
+            dep += i[1]
+        requires.append(dep)
+    return requires
+
+
+with open("Pipfile") as f:
+    text = f.read()
+
+    block = re.findall(r"\[packages\](.*?)\[", text, re.DOTALL)
+    install_requires = parse_deps(block[0]) if block else []
+
+    block = re.findall(r"\[dev-packages\](.*?)\[", text, re.DOTALL)
+    tests_require = parse_deps(block[0]) if block else []
 
 setup(
     name="awokado",
@@ -40,20 +62,7 @@ setup(
         )
     ),
     packages=["awokado", "awokado.documentation", "awokado.exceptions"],
-    install_requires=(
-        "bcrypt",
-        "bulky",
-        "boto3",
-        "cached-property",
-        "dynaconf",
-        "falcon==2.0.0",
-        "marshmallow>=3.0.0rc5",
-        "pyaml",
-        "clavis",
-        "apispec==2.0.1",
-        "jinja2",
-        "SQLAlchemy>=1.3.0",
-        "m2r",
-    ),
+    install_requires=install_requires,
+    tests_require=tests_require,
     python_requires=">=3.7",
 )

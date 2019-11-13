@@ -6,7 +6,7 @@ import sys
 import traceback
 from dataclasses import dataclass
 from json import JSONDecodeError
-from typing import List, Dict, Any, Type, Tuple, Callable
+from typing import List, Dict, Any, Type, Tuple, Callable, Optional
 
 import falcon
 from dynaconf import settings
@@ -15,6 +15,7 @@ from sqlalchemy import desc, asc
 from awokado.consts import DEFAULT_ACCESS_CONTROL_HEADERS
 from awokado.exceptions import BaseApiException, IdFieldMissingError, BadRequest
 from awokado.filter_parser import FilterItem
+import sqlalchemy as sa
 
 if False:
     from awokado.resource import BaseResource
@@ -27,12 +28,24 @@ class AuthBundle:
     user_id: int
     auth_token: str
 
+    def __iter__(self):
+        yield self.user_id
+        yield self.auth_token
+
+
+@dataclass
+class M2MMapping:
+    related_model: sa.Table
+    left_fk_field: Optional[sa.Column] = None
+    right_fk_field: Optional[sa.Column] = None
+    secondary: Optional[sa.Table] = None
+
 
 def rand_string(size=8, chars=string.ascii_uppercase + string.digits):
     return "".join(random.choice(chars) for _ in range(size))
 
 
-def get_sort_way(sort_route) -> Tuple[str, Callable]:
+def get_sort_way(sort_route: str) -> Tuple[str, Callable]:
     if sort_route.startswith("-"):
         sort_route = sort_route[1:]
 
@@ -47,22 +60,6 @@ def get_sort_way(sort_route) -> Tuple[str, Callable]:
     return sort_route, sort_way
 
 
-def empty_response(resource, is_list=False):
-    if isinstance(resource, str):
-        resource_name = resource
-    else:
-        resource_name = resource.Meta.name
-
-    if is_list:
-        response = {"payload": {resource_name: []}, "meta": None}
-        if not resource.Meta.disable_total:
-            response["meta"] = {"total": 0}
-        return response
-
-    else:
-        return {resource_name: []}
-
-
 def get_read_params(
     req: falcon.Request, resource: Type["BaseResource"]
 ) -> dict:
@@ -74,15 +71,6 @@ def get_read_params(
         "filters": FilterItem.parse(req._params, resource),
     }
     return params
-
-
-def has_resource_auth(resource):
-    if not hasattr(resource.Meta, "auth"):
-        return False
-    if resource.Meta.auth is None:
-        return False
-
-    return True
 
 
 def json_error_serializer(
@@ -102,11 +90,10 @@ def json_error_serializer(
     origin = origin2 or origin
     headers = {}
 
-    if settings.get("AWOKADO_DEBUG"):
+    if settings.get("AWOKADO_DEBUG") or (
+        origin and origin in settings.ORIGIN_HOSTS
+    ):
         headers["Access-Control-Allow-Origin"] = origin
-    else:
-        if origin and origin in settings.ORIGIN_HOSTS:
-            headers["Access-Control-Allow-Origin"] = origin
 
     headers_to_set = settings.get(
         "AWOKADO_ACCESS_CONTROL_HEADERS", DEFAULT_ACCESS_CONTROL_HEADERS
@@ -169,20 +156,20 @@ def api_exception_handler(error, req, resp, params):
         resp.append_header("Vary", "Accept")
 
 
-def get_id_field(resource, name_only=False, skip_exc=False):
-    resource_id_field = getattr(resource.Meta, "id_field", "id")
-    if resource_id_field not in resource.fields:
+def get_id_field(resource: "BaseResource", name_only=False, skip_exc=False):
+    resource_id_field_name = resource.Meta.id_field
+    if resource_id_field_name not in resource.fields:
         if skip_exc:
             return False
 
         raise IdFieldMissingError()
 
     if name_only:
-        return resource_id_field
+        return resource_id_field_name
 
-    resource_id_field = resource.fields.get(resource_id_field)
-    resource_id_field = resource_id_field.metadata.get("model_field")
-    return resource_id_field
+    resource_id_field = resource.fields[resource_id_field_name]
+    resource_id_model_field = resource_id_field.metadata.get("model_field")
+    return resource_id_model_field
 
 
 def get_ids_from_payload(model: Any, payload: List[Dict]) -> List:

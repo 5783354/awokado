@@ -18,9 +18,11 @@
 
 ##### examples
 `/v1/user/?username[ilike]=Andy`
+
 it’s equal to SQL statement: `SELECT * FROM users WHERE username ILIKE '%Andy%';`
 
 `/v1/user/?id[in]=1,2,3,4`
+
 it’s equal to SQL statement: `SELECT * FROM users WHERE id IN (1,2,3,4);`
 
 ## Sorting

@@ -10,7 +10,7 @@ from sqlalchemy.sql.selectable import Select
 from awokado.custom_fields import ToMany, ToOne
 from awokado.exceptions import BadFilter, BadRequest, RelationNotFound
 from awokado.filter_parser import filter_value_to_python, FilterItem
-from awokado.utils import get_id_field, get_sort_way, has_resource_auth
+from awokado.utils import get_id_field, get_sort_way
 
 if False:
     from awokado.resource import BaseResource
@@ -137,7 +137,7 @@ class ReadContext:
             model_id = get_id_field(self.resource)
             q = q.where(model_id == self.resource_id)
 
-        if has_resource_auth(self.resource):
+        if self.resource.Meta.auth:
             q = self.resource.Meta.auth.can_read(self, q)
 
         if joins is not None:
