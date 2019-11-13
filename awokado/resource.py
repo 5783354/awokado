@@ -1,5 +1,6 @@
 import json
-from typing import Any, Dict, List, Optional, Tuple, Union
+import sys
+from typing import Dict, List, Optional, Tuple, Union, Type
 
 import bulky
 import falcon
@@ -7,9 +8,8 @@ import sqlalchemy as sa
 from cached_property import cached_property
 from clavis import Transaction
 from marshmallow import utils, Schema, ValidationError
-from marshmallow.schema import SchemaMeta
+from sqlalchemy.orm import Session
 
-from awokado.auth import BaseAuth
 from awokado.consts import (
     AUDIT_DEBUG,
     BULK_CREATE,
@@ -23,73 +23,61 @@ from awokado.custom_fields import ToMany, ToOne
 from awokado.db import DATABASE_URL, persistent_engine
 from awokado.exceptions import BadRequest, MethodNotAllowed
 from awokado.filter_parser import FilterItem
+from awokado.meta import ResourceMeta
 from awokado.request import ReadContext
 from awokado.response import Response
 from awokado.utils import (
-    get_id_field,
     get_ids_from_payload,
     get_read_params,
-    has_resource_auth,
+    get_id_field,
+    M2MMapping,
+    AuthBundle,
 )
 
 
-class ResourceMeta(SchemaMeta):
-    def __new__(mcs, cls_name=None, superclasses=None, attributes=None):
-        new_resource = super(ResourceMeta, mcs).__new__(
-            mcs, cls_name, superclasses, attributes
-        )
-        new_resource.RESOURCES[new_resource.Meta.name] = new_resource
-        res_meta = new_resource.Meta
+class BaseResource(Schema):
+    RESOURCES: Dict[str, Type["BaseResource"]] = {}
+    Response = Response
+    Meta: ResourceMeta
 
-        if res_meta.name in ("base_resource", "_resource"):
-            return new_resource
+    def __new__(cls: Type["BaseResource"]):
+        if cls.Meta.name not in ("base_resource", "_resource"):
+            cls.RESOURCES[cls.Meta.name] = cls
 
-        if not getattr(res_meta, "methods", None):
-            raise Exception(f"{cls_name} must have Meta.methods")
-        if not getattr(res_meta, "name", None):
+        return super().__new__(cls)
+
+    def __init__(self):
+        super().__init__()
+        cls_name = self.__class__.__name__
+
+        class_meta = getattr(self, "Meta", None)
+        if isinstance(class_meta, type):
+            print(
+                "resourse.Meta as class will be deprecated soon",
+                file=sys.stderr,
+            )
+            self.Meta = ResourceMeta.from_class(class_meta)
+
+        if not isinstance(self.Meta, ResourceMeta):
+            raise Exception(
+                f"{cls_name}.Meta must inherit from ResourceMeta class"
+            )
+
+        if not self.Meta.name or self.Meta.name in (
+            "base_resource",
+            "_resource",
+        ):
             raise Exception(f"{cls_name} must have Meta.name")
 
-        new_resource_obj = new_resource()
-        resource_id_name = get_id_field(
-            new_resource_obj, name_only=True, skip_exc=True
-        )
+        resource_id_name = get_id_field(self, name_only=True, skip_exc=True)
         if resource_id_name:
-            resource_id_field = new_resource_obj.fields.get(resource_id_name)
+            resource_id_field = self.fields.get(resource_id_name)
             resource_id_field = resource_id_field.metadata.get("model_field")
             if not resource_id_field:
                 raise Exception(
                     f"Resource's {cls_name} id field {resource_id_name}"
                     f" must have model_field."
                 )
-
-        if not hasattr(res_meta, "disable_total"):
-            res_meta.disable_total = False
-
-        return new_resource
-
-
-class BaseResource(Schema, metaclass=ResourceMeta):
-    RESOURCES: Dict[str, "BaseResource"] = {}
-    Response = Response
-
-    class Meta:
-        """
-        :param name:  used for two resources connection by relation
-        :param model: represents sqlalchemy model or cte
-        :param methods:  tuple of methods you want to allow
-        :param auth: awokado `BaseAuth <reference.html#awokado.auth.BaseAuth>`_  class for embedding authentication logic
-        :param skip_doc:  set true if you don't need to add the resource to documentation
-        :param disable_total: set false, if you don't need to know returning objects amount in read-requests
-        :param select_from: provide data source here if your resource use another's model fields (for example sa.outerjoin(FirstModel, SecondModel, FirstModel.id == SecondModel.first_model_id))
-        """
-
-        name = "base_resource"
-        methods: Union[Tuple[str], Tuple] = tuple()
-        model: Any = None  # type: ignore
-        auth = BaseAuth
-        skip_doc = True
-        disable_total = False
-        id_field = None
 
     ###########################################################################
     # Marshmallow validation methods
@@ -150,7 +138,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Falcon method. PATCH-request entry point.
 
         Here is a database transaction opening.
-        This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
+        This is where authentication takes place
+        (if auth class is pointed in `resource <#awokado.meta.ResourceMeta>`_)
         Then update method is run.
         """
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
@@ -165,7 +154,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
             ids = get_ids_from_payload(self.Meta.model, data)
 
-            if has_resource_auth(self):
+            if self.Meta.auth:
                 self.Meta.auth.can_update(session, user_id, ids)
 
             self.audit_log(
@@ -181,7 +170,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Falcon method. POST-request entry point.
 
         Here is a database transaction opening.
-        This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
+        This is where authentication takes place
+        (if auth class is pointed in `resource <#awokado.meta.ResourceMeta>`_)
         Then create method is run.
         """
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
@@ -192,7 +182,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
             payload = req.stream
 
-            if has_resource_auth(self):
+            if self.Meta.auth:
                 self.Meta.auth.can_create(
                     session, payload, user_id, skip_exc=False
                 )
@@ -205,13 +195,6 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         resp.body = json.dumps(result, default=str)
 
-    def auth(self, *args, **kwargs) -> Tuple[int, str]:
-        """This method should return (user_id, token) tuple"""
-        return 0, ""
-
-    def audit_log(self, *args, **kwargs):
-        return
-
     def on_get(
         self,
         req: falcon.Request,
@@ -222,8 +205,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Falcon method. GET-request entry point.
 
         Here is a database transaction opening.
-        This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
-        Then read_handler method is run. It's responsible for the whole read workflow.
+        This is where authentication takes place
+        (if auth class is pointed in `resource <#awokado.meta.ResourceMeta>`_)
+        Then read_handler method is run.
+        It's responsible for the whole read workflow.
         """
         with Transaction(DATABASE_URL, engine=persistent_engine) as t:
             session = t.session
@@ -245,7 +230,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         Falcon method. DELETE-request entry point.
 
         Here is a database transaction opening.
-        This is where authentication takes place (if auth class is pointed in `resource <reference.html#awokado.resource.BaseResource.Meta>`_)
+        This is where authentication takes place
+        (if auth class is pointed in `resource <#awokado.meta.ResourceMeta>`_)
         Then delete method is run.
         """
 
@@ -270,22 +256,34 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             if not ids_to_delete:
                 ids_to_delete = [resource_id]
 
-            if has_resource_auth(self):
+            if self.Meta.auth:
                 self.Meta.auth.can_delete(session, user_id, ids_to_delete)
 
             result = self.delete(session, user_id, ids_to_delete)
 
         resp.body = json.dumps(result, default=str)
 
+    def auth(self, *args, **kwargs) -> AuthBundle:
+        """This method should return (user_id, token) tuple"""
+        return AuthBundle(0, "")
+
+    def audit_log(self, *args, **kwargs):
+        return
+
+    def _check_model_exists(self):
+        if not self.Meta.model:
+            raise Exception(
+                f"{self.__class__.__name__}.Meta.model field not set"
+            )
+
     ###########################################################################
     # Resource methods
     ###########################################################################
 
     def update(
-        self, session, payload: dict, user_id: int, *args, **kwargs
+        self, session: Session, payload: dict, user_id: int, *args, **kwargs
     ) -> dict:
         """
-
         First of all, data is prepared for updating:
         Marshmallow load method for data structure deserialization and then preparing data for SQLAlchemy update query.
 
@@ -293,6 +291,8 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         Returns updated resources with the help of read_handler method.
         """
+        self._check_model_exists()
+
         data = payload[self.Meta.name]
 
         data_to_update = self._to_update(data)
@@ -310,21 +310,23 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         return result
 
-    def create(self, session, payload: dict, user_id: int) -> dict:
+    def create(self, session: Session, payload: dict, user_id: int) -> dict:
         """
-
-        Create method.
+        Create method
 
         You can override it to add your logic.
 
         First of all, data is prepared for creating:
         Marshmallow load method for data structure deserialization and then preparing data for SQLAlchemy create a query.
 
-        Inserts data to the database (Uses bulky library if there is more than one entity to create). Saves many-to-many relationships.
+        Inserts data to the database
+        (Uses bulky library if there is more than one entity to create). Saves many-to-many relationships.
 
         Returns created resources with the help of read_handler method.
 
         """
+        self._check_model_exists()
+
         # prepare data to insert
         data = payload[self.Meta.name]
 
@@ -347,10 +349,10 @@ class BaseResource(Schema, metaclass=ResourceMeta):
             session=session, user_id=user_id, resource_id=resource_id
         )
 
-    def bulk_create(self, session, user_id: int, data: list) -> dict:
-        data_to_insert = []
-        for item in data:
-            data_to_insert.append(self._to_create(item))
+    def bulk_create(self, session: Session, user_id: int, data: list) -> dict:
+        self._check_model_exists()
+
+        data_to_insert = [self._to_create(i) for i in data]
 
         # insert to DB
         resource_ids = bulky.insert(
@@ -369,12 +371,12 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
         return result
 
-    def delete(self, session, user_id: int, obj_ids: list):
+    def delete(self, session: Session, user_id: int, obj_ids: list):
         """
-
-        Simply deletes objects with passed identifiers.
-
+        Simply deletes objects with passed identifiers
         """
+        self._check_model_exists()
+
         session.execute(
             sa.delete(self.Meta.model).where(self.Meta.model.id.in_(obj_ids))
         )
@@ -416,7 +418,7 @@ class BaseResource(Schema, metaclass=ResourceMeta):
 
     def read_handler(
         self,
-        session,
+        session: Session,
         user_id: int,
         include: list = None,
         filters: Optional[List[FilterItem]] = None,
@@ -477,16 +479,16 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         return ctx.read__serializing()
 
     def get_related_model(self, field: Union[ToOne, ToMany]):
-        resource_name = field.metadata.get("resource")
+        resource_name = field.metadata["resource"]
         resource = self.RESOURCES[resource_name]
         return resource.Meta.model
 
-    def _process_to_many_field(
-        self, field_name: str, field: Union[ToOne, ToMany]
-    ):
+    def _process_to_many_field(self, field: ToMany) -> M2MMapping:
         related_model = self.get_related_model(field)
         resource_model = self.Meta.model
-        model_field = field.metadata.get("model_field")
+        model_field = field.metadata["model_field"]
+
+        field_obj = M2MMapping(related_model=related_model)
 
         if not isinstance(model_field, sa.Column):
             model_field = getattr(
@@ -496,61 +498,63 @@ class BaseResource(Schema, metaclass=ResourceMeta):
         if related_model.__table__ == model_field.table:
             for fk in model_field.table.foreign_keys:
                 if fk.column.table == resource_model.__table__:
-                    setattr(field, "left_fk_field", fk.parent)
+                    field_obj.left_fk_field = fk.parent
                     break
         else:
-            setattr(field, "secondary", model_field.table)
+            field_obj.secondary = model_field.table
             for fk in model_field.table.foreign_keys:
                 if fk.column.table == related_model.__table__:
-                    setattr(field, "right_fk_field", fk.parent)
+                    field_obj.right_fk_field = fk.parent
+                elif fk.column.table == resource_model.__table__:
+                    field_obj.left_fk_field = fk.parent
 
-                if fk.column.table == resource_model.__table__:
-                    setattr(field, "left_fk_field", fk.parent)
-
-        setattr(field, "related_model", related_model)
-        return field_name, field
+        return field_obj
 
     @cached_property
-    def _to_many_fields(self) -> list:
+    def _to_many_fields(self) -> List[Tuple[str, M2MMapping]]:
         return [
-            self._process_to_many_field(field_name, field)
+            (field_name, self._process_to_many_field(field))
             for field_name, field in self.fields.items()
             if isinstance(field, ToMany)
         ]
 
     @staticmethod
-    def check_exists(session, table: sa.Table, ids: list, field_name: str):
+    def check_exists(
+        session: Session, table: sa.Table, ids: list, field_name: str
+    ):
         result = session.execute(
             sa.select([table.c.id]).where(table.c.id.in_(ids))
         )
 
         missed = set(ids) - {item.id for item in result}
         if missed:
-            err_msg = "objects with id {ids} does not exist".format(
-                ids=",".join(map(str, missed))
+            raise BadRequest(
+                {
+                    field_name: f"objects with id {','.join(map(str, missed))} does not exist"
+                }
             )
-            raise BadRequest({field_name: err_msg})
+
+    @staticmethod
+    def _get_m2m(field: M2MMapping, field_name: str, data) -> List[dict]:
+        m2m = []
+        for obj in data:
+            rel_ids = obj.get(field_name) or ()
+            for rel_id in rel_ids:
+                m2m.append(
+                    {
+                        field.left_fk_field: obj.get("id"),
+                        field.right_fk_field: rel_id,
+                    }
+                )
+        return m2m
 
     def _save_m2m(
-        self, session, data: Union[list, dict], update: bool = False
+        self, session: Session, data: Union[list, dict], update: bool = False
     ) -> None:
         data = data if utils.is_collection(data) else [data]
 
         for field_name, field in self._to_many_fields:
-            if hasattr(field, "secondary"):
-                many_2_many = []
-                for obj in data:
-                    if field_name in obj:
-                        many_2_many.extend(
-                            [
-                                {
-                                    field.left_fk_field: obj.get("id"),
-                                    field.right_fk_field: rel_id,
-                                }
-                                for rel_id in obj.get(field_name)
-                            ]
-                        )
-
+            if field.secondary is not None:
                 if update:
                     session.execute(
                         sa.delete(field.secondary).where(
@@ -560,11 +564,13 @@ class BaseResource(Schema, metaclass=ResourceMeta):
                         )
                     )
 
+                many_2_many = self._get_m2m(field, field_name, data)
+
                 if many_2_many:
                     self.check_exists(
                         session,
                         field.related_model.__table__,
-                        [obj.get(field.right_fk_field) for obj in many_2_many],
+                        [obj[field.right_fk_field] for obj in many_2_many],
                         field_name,
                     )
                     session.execute(

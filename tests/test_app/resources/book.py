@@ -1,24 +1,23 @@
-from typing import List
-
 import sqlalchemy as sa
 from marshmallow import fields
 
 import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE
+from awokado.meta import ResourceMeta
 from awokado.request import ReadContext
-from tests.test_app.resources.base import Resource
+from awokado.resource import BaseResource
 
 
-class BookResource(Resource):
-    class Meta:
-        model = m.Book
-        name = "book"
-        methods = (CREATE, READ, UPDATE, BULK_UPDATE, DELETE)
-        auth = None
-        select_from = sa.outerjoin(
+class BookResource(BaseResource):
+    Meta = ResourceMeta(
+        model=m.Book,
+        name="book",
+        methods=(CREATE, READ, UPDATE, BULK_UPDATE, DELETE),
+        select_from=sa.outerjoin(
             m.Book, m.M2M_Book_Tag, m.Book.id == m.M2M_Book_Tag.c.book_id
-        ).outerjoin(m.Author, m.Book.author_id == m.Author.id)
+        ).outerjoin(m.Author, m.Book.author_id == m.Author.id),
+    )
 
     id = fields.Int(model_field=m.Book.id)
     title = fields.String(model_field=m.Book.title, required=True)

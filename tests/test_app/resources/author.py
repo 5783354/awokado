@@ -1,15 +1,14 @@
-from typing import List
-
 import sqlalchemy as sa
-from sqlalchemy.sql import Selectable
 from marshmallow import fields
+from sqlalchemy.sql import Selectable
 
 import tests.test_app.models as m
 from awokado import custom_fields
 from awokado.auth import BaseAuth
 from awokado.consts import CREATE, READ, UPDATE, BULK_UPDATE, DELETE
+from awokado.meta import ResourceMeta
 from awokado.request import ReadContext
-from tests.test_app.resources.base import Resource
+from awokado.resource import BaseResource
 
 
 class AuthorAuth(BaseAuth):
@@ -34,15 +33,16 @@ class AuthorAuth(BaseAuth):
         return query
 
 
-class AuthorResource(Resource):
-    class Meta:
-        model = m.Author
-        name = "author"
-        methods = (CREATE, READ, UPDATE, BULK_UPDATE, DELETE)
-        auth = AuthorAuth
-        select_from = sa.outerjoin(
+class AuthorResource(BaseResource):
+    Meta = ResourceMeta(
+        model=m.Author,
+        name="author",
+        methods=(CREATE, READ, UPDATE, BULK_UPDATE, DELETE),
+        auth=AuthorAuth,
+        select_from=sa.outerjoin(
             m.Author, m.Book, m.Author.id == m.Book.author_id
-        )
+        ),
+    )
 
     id = fields.Int(model_field=m.Author.id)
     books = custom_fields.ToMany(

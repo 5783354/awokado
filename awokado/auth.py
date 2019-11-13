@@ -13,11 +13,12 @@ from awokado.exceptions import (
 class BaseAuth:
     """
     CREATE = {
-    'ROLE NAME HERE': Boolean value
+    'ROLE NAME': Boolean value
     }
-            Example:
-            'ADMIN': True,
-            'GUEST': False
+
+    Example:
+    'ADMIN': True,
+    'GUEST': False
 
     READ,
     UPDATE,
@@ -26,7 +27,7 @@ class BaseAuth:
     """
 
     CREATE: Dict[str, bool] = {
-        # 'ROLE NAME HERE': Boolean value,
+        # 'ROLE NAME': Boolean value,
         #  Example:
         # 'ADMIN': True,
         # 'GUEST': False,

@@ -37,7 +37,7 @@ def trim(docstring):
 
 
 def parse_doc_string(doc_string):
-    PARAM_OR_RETURNS_REGEX = re.compile(":(?:param|returns)")
+    param_or_returns_regex = re.compile(":(?:param|returns)")
     docstring = trim(doc_string)
     long_description = None
 
@@ -47,7 +47,7 @@ def parse_doc_string(doc_string):
     if len(lines) > 1:
         long_description = lines[1].strip()
 
-        match = PARAM_OR_RETURNS_REGEX.search(long_description)
+        match = param_or_returns_regex.search(long_description)
         if match:
             long_desc_end = match.start()
             long_description = long_description[:long_desc_end].rstrip()

@@ -1,15 +1,12 @@
 import falcon
 
 from awokado.consts import CREATE, READ
-from tests.test_app.resources.base import Resource
+from awokado.meta import ResourceMeta
+from awokado.resource import BaseResource
 
 
-class HealthCheckResource(Resource):
-    class Meta:
-        model = None
-        name = "healthcheck"
-        methods = (READ, CREATE)
-        auth = None
+class HealthCheckResource(BaseResource):
+    Meta = ResourceMeta(name="healthcheck", methods=(READ, CREATE))
 
     def on_get(
         self,

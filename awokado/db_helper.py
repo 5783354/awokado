@@ -33,7 +33,7 @@ class Database:
         if result.scheme != "postgresql" or not all(data.values()):
             raise Exception(f"Invalid url: {url}")
 
-        return cls(**data)
+        return cls(**data)  # type: ignore
 
     @classmethod
     def from_config(cls, config):

@@ -1,4 +1,4 @@
-from marshmallow import fields, validate, utils
+from marshmallow import fields, validate
 
 
 class ToMany(fields.List):

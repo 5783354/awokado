@@ -1,5 +1,8 @@
 from typing import Dict, Optional, List
 
+if False:
+    from awokado.resource import BaseResource
+
 
 class Response:
     """
@@ -47,10 +50,7 @@ class Response:
     META_KEYWORD = "meta"
     TOTAL_KEYWORD = "total"
 
-    def __init__(self, resource, is_list: bool = False):
-        """
-        # :param resource: resource.BaseResource
-        """
+    def __init__(self, resource: "BaseResource", is_list: bool = False):
         self.is_list = is_list
         self.resource = resource
 

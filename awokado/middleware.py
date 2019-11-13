@@ -29,17 +29,12 @@ class HttpMiddleware:
             return
 
         # Update https headers
-        origin = req.headers.get("HTTP_ORIGIN")
-        origin2 = req.headers.get("ORIGIN")
-        origin = origin2 or origin
+        origin = req.headers.get("ORIGIN") or req.headers.get("HTTP_ORIGIN")
 
-        if settings.get("AWOKADO_DEBUG"):
+        if settings.get("AWOKADO_DEBUG") or (
+            origin and origin in settings.ORIGIN_HOSTS
+        ):
             resp.append_header(name="Access-Control-Allow-Origin", value=origin)
-        else:
-            if origin and origin in settings.ORIGIN_HOSTS:
-                resp.append_header(
-                    name="Access-Control-Allow-Origin", value=origin
-                )
 
         resp.set_headers(
             settings.get(
