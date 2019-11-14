@@ -1,7 +1,13 @@
 # Changelog
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
-## [0.6b0] - 2019-11-11
+## [0.6b1] - 2019-11-13
+
+### Removed
+
+- Unused exceptions
+
+## [0.6b0] - 2019-11-13
 
 ### Added
 
