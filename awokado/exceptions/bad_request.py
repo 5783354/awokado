@@ -29,33 +29,6 @@ class BadFilter(BadRequest):
         BadRequest.__init__(self, code="bad-filter", details=details)
 
 
-class InvalidBarcode(BadRequest):
-    def __init__(self, details="Invalid barcode"):
-        BadRequest.__init__(self, code="invalid-barcode", details=details)
-
-
-class UnsupportedMethod(BadRequest):
-    def __init__(self, method=None, details=None):
-        if not details:
-            if method:
-                details = f"Method {method} is not supported"
-            else:
-                details = "Method is not supported"
-        BadRequest.__init__(self, code="unsupported-method", details=details)
-
-
-class UnsupportedRequestAttr(BadRequest):
-    def __init__(self, attr=None, details=None):
-        if not details:
-            if attr:
-                details = f"Request attr {attr} is not supported"
-            else:
-                details = "Request attr is not supported"
-        BadRequest.__init__(
-            self, code="unsupported-request-attr", details=details
-        )
-
-
 class MethodNotAllowed(BaseApiException):
     def __init__(self, details="", code="method-not-allowed"):
         BaseApiException.__init__(

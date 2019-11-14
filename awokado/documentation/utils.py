@@ -41,6 +41,9 @@ def parse_doc_string(doc_string):
     docstring = trim(doc_string)
     long_description = None
 
+    # fix sphinx docs
+    docstring = re.sub(r"`\w+ <#([\w\d_\.]+)>`_", r"`\1`", docstring)
+
     lines = docstring.split("\n", 1)
     short_description = lines[0]
 

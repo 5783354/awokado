@@ -1,27 +1,15 @@
-from .auth import (
-    AuthError,
-    BadEmail,
-    BadPassword,
-    BadPhone,
-    BadPhoneVerificationCode,
-    DataError,
-    IdentificationFailed,
-    PasswordMismatch,
-    PasswordResetFailed,
-    PhoneVerificationFailed,
-    UserNotFound,
-)
+from .auth import AuthError
+from .base import BaseApiException
+from .not_found import NotFound, RelationNotFound, ResourceNotFound
+
 from .bad_request import (
     BadFilter,
     BadLimitOffset,
     BadRequest,
-    InvalidBarcode,
     MethodNotAllowed,
-    UnsupportedMethod,
-    UnsupportedRequestAttr,
     IdFieldMissingError,
 )
-from .base import BaseApiException
+
 from .forbidden import (
     CreateResourceForbidden,
     DeleteResourceForbidden,
@@ -29,4 +17,3 @@ from .forbidden import (
     ReadResourceForbidden,
     UpdateResourceForbidden,
 )
-from .not_found import NotFound, RelationNotFound, ResourceNotFound
