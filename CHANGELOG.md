@@ -1,6 +1,12 @@
 # Changelog
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+## [0.6b2] - 2019-11-15
+
+### Fixes
+
+- Fix Pipfile parser in setup.py
+
 ## [0.6b1] - 2019-11-13
 
 ### Removed

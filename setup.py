@@ -16,7 +16,7 @@ with open("README.md", "r") as fh:
 
 
 def parse_deps(deps):
-    items = re.findall(r'(\w+) ?= ?"(.*)"', deps)
+    items = re.findall(r'([\w\-_]+) ?= ?"(.*)"', deps)
     requires = []
     for i in items:
         dep = i[0]
