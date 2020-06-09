@@ -9,6 +9,7 @@ tests:
     - postgres:9.6.7
   only:
     - merge_requests
+    - master
   cache:
     paths:
       - $PIP_CACHE_DIR
