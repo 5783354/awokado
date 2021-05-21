@@ -15,18 +15,17 @@ mypy = "*"
 sphinx-rtd-theme = "*"
 
 [packages]
-sqlalchemy = "==1.3.10"
+sqlalchemy = "<1.4.0,>=1.3.23"
 dynaconf = "*"
 psycopg2-binary = "*"
 pyaml = "*"
 clavis = "==0.0.1b3"
-marshmallow = "==3.2.2"
-falcon = "==2.0.0"
-jinja2 = "*"
-apispec = "==3.1.0"
+marshmallow = "<4.0.0,>=3.12.1"
+falcon = "<3.0.0,>=2.0.0"
+apispec = "<4.0.0,>=3.3.2"
 bulky = "*"
 boto3 = "*"
 cached-property = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3"

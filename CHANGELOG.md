@@ -1,6 +1,14 @@
 # Changelog
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+## [0.7] - 2019-11-15
+
+### Changed
+
+- Update sqlalchemy 1.3.10 -> 1.3.23
+- Update marshmallow 3.2.2 -> 3.12.1
+- Update apispec 3.1.0 -> 3.3.2
+
 ## [0.6b2] - 2019-11-15
 
 ### Fixes
